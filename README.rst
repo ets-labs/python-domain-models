@@ -1,2 +1,4 @@
-# domain_models
+Domain models
+============
+
 Domain models framework for Python projects
