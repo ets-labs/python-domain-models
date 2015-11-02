@@ -35,7 +35,7 @@ class SampleTests(unittest.TestCase):
 
         self.assertEqual(user.id, 1)
         self.assertEqual(user.email, 'example@example.com')
-        self.assertEqual(user.first_name, u'John')
-        self.assertEqual(user.last_name, u'Smith')
+        self.assertEqual(user.first_name, unicode('John'))
+        self.assertEqual(user.last_name, unicode('Smith'))
         self.assertEqual(user.gender, 'male')
         self.assertEqual(user.birth_date, '05/04/1988')
