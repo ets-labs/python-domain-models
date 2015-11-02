@@ -1,4 +1,4 @@
-"""Sample unittests."""
+"""Model unittests."""
 
 import six
 import unittest2 as unittest
