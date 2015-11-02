@@ -17,8 +17,8 @@ with open('README.rst') as readme_file:
     description = description.replace(SHORT_DESCRIPTION, '')
 
 # Getting requirements:
-# with open('requirements.txt') as version:
-#     requirements = version.readlines()
+with open('requirements.txt') as version:
+    requirements = version.readlines()
 
 # Getting version:
 with open('domain_models/__init__.py') as init_file:
@@ -57,41 +57,35 @@ setup(name='domain_models',
       license='BSD New',
       packages=['domain_models'],
       zip_safe=True,
-      # install_requires=requirements,
+      install_requires=requirements,
       cmdclass={
           'publish': PublishCommand,
       },
       keywords=[
-          #'Dependency injection',
-          #'Dependency injection framework',
-          #'Dependency injection container',
-          #'Dependency injector',
-          #'Dependency management',
-          #'DI',
-          #'DI Container',
-          #'Inversion of Control',
-          #'Inversion of Control container',
-          #'IoC',
-          #'IoC container',
+          'Domain models',
+          'Domain modelling',
+          'Domain driven design',
+          'Domain driven development',
+          'DDD',
+          'Models',
       ],
       classifiers=[
-          'Development Status :: 1 - Planning',
+          'Development Status :: 2 - Pre-Alpha',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: BSD License',
           'Operating System :: OS Independent',
           'Programming Language :: Python',
-          #'Programming Language :: Python :: 2',
-          #'Programming Language :: Python :: 2.6',
-          #'Programming Language :: Python :: 2.7',
-          #'Programming Language :: Python :: 3',
-          #'Programming Language :: Python :: 3.2',
-          #'Programming Language :: Python :: 3.3',
-          #'Programming Language :: Python :: 3.4',
-          #'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.6',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.2',
+          'Programming Language :: Python :: 3.3',
+          'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: Implementation :: CPython',
-          #'Programming Language :: Python :: Implementation :: PyPy',
+          'Programming Language :: Python :: Implementation :: PyPy',
           'Topic :: Software Development',
           'Topic :: Software Development :: Libraries',
           'Topic :: Software Development :: Libraries :: Python Modules',
       ])
-
