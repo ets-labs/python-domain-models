@@ -1,0 +1,19 @@
+sudo: false
+language: python
+install: pip install tox
+script: tox
+python:
+  - 3.5
+env:
+  - TOXENV=coveralls
+  - TOXENV=pylint
+  - TOXENV=flake8
+  - TOXENV=pep257
+  - TOXENV=py26
+  - TOXENV=py27
+  - TOXENV=py32
+  - TOXENV=py33
+  - TOXENV=py34
+  - TOXENV=py35
+  - TOXENV=pypy
+  - TOXENV=pypy3

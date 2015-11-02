@@ -1,0 +1,3 @@
+[run]
+include = domain_models/*
+omit = tests/*
