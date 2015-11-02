@@ -1,5 +1,7 @@
 """Domain models fields."""
 
+import six
+
 
 class Field(property):
     """Base field."""
@@ -41,4 +43,4 @@ class Unicode(Field):
 
     def _set(self, _, value):
         """Set field's value."""
-        self.value = unicode(value)
+        self.value = six.u(value)
