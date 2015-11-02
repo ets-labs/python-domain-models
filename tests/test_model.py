@@ -1,5 +1,6 @@
 """Sample unittests."""
 
+import six
 import unittest2 as unittest
 
 from domain_models import model
@@ -35,7 +36,7 @@ class SampleTests(unittest.TestCase):
 
         self.assertEqual(user.id, 1)
         self.assertEqual(user.email, 'example@example.com')
-        self.assertEqual(user.first_name, unicode('John'))
-        self.assertEqual(user.last_name, unicode('Smith'))
+        self.assertEqual(user.first_name, six.u('John'))
+        self.assertEqual(user.last_name, six.u('Smith'))
         self.assertEqual(user.gender, 'male')
         self.assertEqual(user.birth_date, '05/04/1988')
