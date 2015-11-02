@@ -28,8 +28,6 @@ class DomainModel(object):
     __view_key__ = tuple()
     __unique_key__ = tuple()
 
-    __slots__ = ('__view_key__', '__unique_key__')
-
     def __eq__(self, compared):
         """Make equality comparation based on unique key.
 
