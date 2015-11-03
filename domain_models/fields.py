@@ -12,13 +12,14 @@ class Field(property):
         self.name = None
         self.storage_name = None
         self.default = default
-        super(Field, self).__init__(self._get, self._set)
+        super(Field, self).__init__(self.get_value, self.set_value)
 
     def bind(self, model_cls, name):
         """Post initializer."""
         self.model_cls = model_cls
         self.name = name
         self.storage_name = ''.join(('_', self.name))
+        return self
 
     def init_model(self, model, value):
         """Init model with field."""
@@ -26,11 +27,11 @@ class Field(property):
             value = self.default() if callable(self.default) else self.default
         setattr(model, self.storage_name, value)
 
-    def _get(self, model):
+    def get_value(self, model):
         """Return field's value."""
         return getattr(model, self.storage_name)
 
-    def _set(self, model, value):
+    def set_value(self, model, value):
         """Set field's value."""
         setattr(model, self.storage_name, value)
 
@@ -38,7 +39,7 @@ class Field(property):
 class Int(Field):
     """Int field."""
 
-    def _set(self, model, value):
+    def set_value(self, model, value):
         """Set field's value."""
         setattr(model, self.storage_name, int(value))
 
@@ -46,7 +47,7 @@ class Int(Field):
 class String(Field):
     """String field."""
 
-    def _set(self, model, value):
+    def set_value(self, model, value):
         """Set field's value."""
         setattr(model, self.storage_name, str(value))
 
@@ -54,6 +55,6 @@ class String(Field):
 class Unicode(Field):
     """Unicode string field."""
 
-    def _set(self, model, value):
+    def set_value(self, model, value):
         """Set field's value."""
         setattr(model, self.storage_name, six.u(value))
