@@ -94,3 +94,9 @@ class DomainModel(object):
             return hash(tuple(field.get_value(self)
                               for field in self.__class__.__unique_key__))
         return super(DomainModel, self).__hash__()
+
+    @property
+    def __data__(self):
+        """Read only dictionary of model fields/values."""
+        return dict((field.name, field.get_value(self))
+                    for field in self.__class__.__fields__)
