@@ -4,6 +4,7 @@ import collections
 import six
 
 from . import fields
+from . import errors
 
 
 class DomainModelMetaClass(type):
@@ -11,39 +12,62 @@ class DomainModelMetaClass(type):
 
     def __new__(mcs, class_name, bases, attributes):
         """Domain model class factory."""
-        attributes['__fields__'] = tuple(field.bind_name(name)
-                                         for name, field in six.iteritems(
-                                             attributes)
-                                         if isinstance(field, fields.Field))
+        attributes['__fields__'] = mcs.parse_fields(attributes)
 
         if attributes.get('__slots_optimization__', True):
-            attributes['__slots__'] = tuple(
-                field.storage_name for field in attributes['__fields__'])
+            attributes['__slots__'] = mcs.get_model_slots(
+                attributes['__fields__'])
 
-        unique_key = attributes.get('__unique_key__')
-        if not unique_key:
-            unique_key = tuple()
-        elif isinstance(unique_key, collections.Iterable):
-            unique_key = tuple(unique_key)
-        elif isinstance(unique_key, fields.Field):
-            unique_key = tuple([unique_key])
-        attributes['__unique_key__'] = unique_key
+        attributes['__unique_key__'] = mcs.prepare_fields_attribute(
+            attribute_name='__unique_key__', attributes=attributes,
+            class_name=class_name)
 
-        cls = type.__new__(mcs, class_name, bases, attributes)
+        attributes['__view_key__'] = mcs.prepare_fields_attribute(
+            attribute_name='__view_key__', attributes=attributes,
+            class_name=class_name)
 
-        for field in cls.__fields__:
-            field.bind_model_cls(cls)
+        return type.__new__(mcs, class_name, bases, attributes)
 
-        return cls
+    @staticmethod
+    def parse_fields(attributes):
+        """Parse model fields."""
+        return tuple(field.bind_name(name)
+                     for name, field in six.iteritems(attributes)
+                     if isinstance(field, fields.Field))
+
+    @staticmethod
+    def get_model_slots(model_fields):
+        """Return tuple of model field slots."""
+        return tuple(field.storage_name for field in model_fields)
+
+    @staticmethod
+    def prepare_fields_attribute(attribute_name, attributes, class_name):
+        """Prepare model fields attribute."""
+        attribute = attributes.get(attribute_name)
+        if not attribute:
+            attribute = tuple()
+        elif isinstance(attribute, collections.Iterable):
+            attribute = tuple(attribute)
+        else:
+            raise errors.Error('{0}.{1} is supposed to be a list of {2}, '
+                               'instead {3} given', class_name, attribute_name,
+                               fields.Field, attribute)
+        return attribute
 
 
+@six.python_2_unicode_compatible
 @six.add_metaclass(DomainModelMetaClass)
 class DomainModel(object):
     """Base domain model.
 
+    :param __fields__: Tuple of all model fields.
     :type __fields__: tuple[fields.Field]
+
+    :param __unique_key__: Tuple of model fields that represents unique key.
     :type __unique_key__: tuple[fields.Field]
-    :type __unique_key__: tuple[fields.Field]
+
+    :param __view_key__: Tuple of model fields that represents view key.
+    :type __view_key__: tuple[fields.Field]
     """
 
     __fields__ = tuple()
@@ -94,6 +118,24 @@ class DomainModel(object):
             return hash(tuple(field.get_value(self)
                               for field in self.__class__.__unique_key__))
         return super(DomainModel, self).__hash__()
+
+    def __repr__(self):
+        """Return Pythonic representation of domain model."""
+        return '{module}.{cls}({fields_values})'.format(
+            module=self.__class__.__module__, cls=self.__class__.__name__,
+            fields_values=', '.join('='.join((field.name,
+                                              repr(field.get_value(self))))
+                                    for field in self.__class__.__fields__))
+
+    def __str__(self):
+        """Return string representation of domain model."""
+        if not self.__class__.__view_key__:
+            return self.__repr__()
+        return '{module}.{cls}({fields_values})'.format(
+            module=self.__class__.__module__, cls=self.__class__.__name__,
+            fields_values=', '.join('='.join((field.name,
+                                              str(field.get_value(self))))
+                                    for field in self.__class__.__view_key__))
 
     @property
     def __data__(self):

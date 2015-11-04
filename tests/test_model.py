@@ -5,6 +5,7 @@ import unittest2 as unittest
 
 from domain_models import model
 from domain_models import fields
+from domain_models import errors
 
 
 class BaseModelsTests(unittest.TestCase):
@@ -93,6 +94,202 @@ class BaseModelsTests(unittest.TestCase):
                                                gender='female',
                                                birth_date='05/04/1985'))
 
+    def test_not_valid_unique_key_field(self):
+        """Test that error is raised when unique key is not correct."""
+        with self.assertRaises(errors.Error):
+            class Model(model.DomainModel):
+                """Test model."""
+
+                __unique_key__ = fields.Field()
+
+    def test_not_valid_unique_key_object(self):
+        """Test that error is raised when unique key is not correct."""
+        with self.assertRaises(errors.Error):
+            class Model(model.DomainModel):
+                """Test model."""
+
+                __unique_key__ = object()
+
+    def test_not_valid_unique_key_scalar(self):
+        """Test that error is raised when unique key is not correct."""
+        with self.assertRaises(errors.Error):
+            class Model(model.DomainModel):
+                """Test model."""
+
+                __unique_key__ = 1
+
+    def test_not_valid_view_key_field(self):
+        """Test that error is raised when view key is not correct."""
+        with self.assertRaises(errors.Error):
+            class Model(model.DomainModel):
+                """Test model."""
+
+                __view_key__ = fields.Field()
+
+    def test_not_valid_view_key_object(self):
+        """Test that error is raised when view key is not correct."""
+        with self.assertRaises(errors.Error):
+            class Model(model.DomainModel):
+                """Test model."""
+
+                __view_key__ = object()
+
+    def test_not_valid_view_key_scalar(self):
+        """Test that error is raised when view key is not correct."""
+        with self.assertRaises(errors.Error):
+            class Model(model.DomainModel):
+                """Test model."""
+
+                __view_key__ = 1
+
+    def test_field_could_not_be_rebound_in_same_model(self):
+        """Test that field could not be rebound."""
+        with self.assertRaises(errors.Error):
+            class Model(model.DomainModel):
+                """Test model."""
+
+                field = fields.Field()
+                another_field = field
+
+    def test_field_could_not_be_rebound_in_different_model(self):
+        """Test that field could not be rebound."""
+        class Model1(model.DomainModel):
+            """Test model."""
+
+            field = fields.Field()
+
+        with self.assertRaises(errors.Error):
+            class Model2(model.DomainModel):
+                """Test model."""
+
+                field = Model1.field
+
+
+class ModelReprTests(unittest.TestCase):
+    """Tests for model Pythonic representation."""
+
+    def test_repr(self):
+        """Test model __repr__()."""
+        class User(model.DomainModel):
+            """Test user domain model."""
+
+            id = fields.Int()
+            email = fields.String()
+            first_name = fields.Unicode()
+            last_name = fields.Unicode()
+            gender = fields.String()
+            birth_date = fields.String()
+
+        user = User()
+        user.id = 1
+        user.email = 'example1@example.com'
+        user.first_name = 'John'
+        user.last_name = 'Smith'
+        user.gender = 'male'
+        user.birth_date = '05/04/1988'
+
+        user_repr = repr(user)
+
+        self.assertIn('test_model.User', user_repr)
+        self.assertIn('id=1', user_repr)
+        self.assertIn('email=\'example1@example.com\'', user_repr)
+        self.assertIn('first_name={0}'.format(repr(six.u('John'))), user_repr)
+        self.assertIn('last_name={0}'.format(repr(six.u('Smith'))), user_repr)
+        self.assertIn('gender=\'male\'', user_repr)
+        self.assertIn('birth_date=\'05/04/1988\'', user_repr)
+
+
+class ModelStrTests(unittest.TestCase):
+    """Tests for model string representation."""
+
+    def test_str_with_single_view_key(self):
+        """Test model __str__()."""
+        class User(model.DomainModel):
+            """Test user domain model."""
+
+            id = fields.Int()
+            email = fields.String()
+            first_name = fields.Unicode()
+            last_name = fields.Unicode()
+            gender = fields.String()
+            birth_date = fields.String()
+
+            __view_key__ = [id]
+
+        user = User()
+        user.id = 1
+        user.email = 'example1@example.com'
+        user.first_name = 'John'
+        user.last_name = 'Smith'
+        user.gender = 'male'
+        user.birth_date = '05/04/1988'
+
+        user_str = str(user)
+
+        self.assertIn('test_model.User', user_str)
+        self.assertIn('id=1', user_str)
+
+        self.assertNotIn('example1@example.com', user_str)
+        self.assertNotIn(six.u('John'), user_str)
+        self.assertNotIn(six.u('Smith'), user_str)
+        self.assertNotIn('male', user_str)
+        self.assertNotIn('05/04/1988', user_str)
+
+    def test_str_with_multiple_view_keys(self):
+        """Test model __str__()."""
+        class User(model.DomainModel):
+            """Test user domain model."""
+
+            id = fields.Int()
+            email = fields.String()
+            first_name = fields.Unicode()
+            last_name = fields.Unicode()
+            gender = fields.String()
+            birth_date = fields.String()
+
+            __view_key__ = (id, email)
+
+        user = User()
+        user.id = 1
+        user.email = 'example1@example.com'
+        user.first_name = 'John'
+        user.last_name = 'Smith'
+        user.gender = 'male'
+        user.birth_date = '05/04/1988'
+
+        user_str = str(user)
+
+        self.assertIn('test_model.User', user_str)
+        self.assertIn('id=1', user_str)
+        self.assertIn('email=example1@example.com', user_str)
+
+        self.assertNotIn(six.u('John'), user_str)
+        self.assertNotIn(six.u('Smith'), user_str)
+        self.assertNotIn('male', user_str)
+        self.assertNotIn('05/04/1988', user_str)
+
+    def test_str_without_view_key(self):
+        """Test model __str__()."""
+        class User(model.DomainModel):
+            """Test user domain model."""
+
+            id = fields.Int()
+            email = fields.String()
+            first_name = fields.Unicode()
+            last_name = fields.Unicode()
+            gender = fields.String()
+            birth_date = fields.String()
+
+        user = User()
+        user.id = 1
+        user.email = 'example1@example.com'
+        user.first_name = 'John'
+        user.last_name = 'Smith'
+        user.gender = 'male'
+        user.birth_date = '05/04/1988'
+
+        self.assertEquals(str(user), repr(user))
+
 
 class ModelSlotsOptimizationTests(unittest.TestCase):
     """Tests for model slots optimizations."""
@@ -136,7 +333,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
             """Test domain model with single unique key."""
 
             id = fields.Int()
-            __unique_key__ = id
+            __unique_key__ = [id]
 
         user11 = Model()
         user11.id = 1
@@ -153,7 +350,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
             """Test domain model with single unique key."""
 
             id = fields.Int()
-            __unique_key__ = id
+            __unique_key__ = [id]
 
         user1 = Model()
         user1.id = 1
@@ -230,13 +427,13 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
             """Test domain model with single unique key."""
 
             id = fields.Int()
-            __unique_key__ = id
+            __unique_key__ = [id]
 
         class Model2(model.DomainModel):
             """Test domain model with single unique key."""
 
             id = fields.Int()
-            __unique_key__ = id
+            __unique_key__ = [id]
 
         user1 = Model1()
         user1.id = 1
@@ -253,7 +450,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
             """Test domain model with single unique key."""
 
             id = fields.Int()
-            __unique_key__ = id
+            __unique_key__ = [id]
 
         user1 = Model()
         user1.id = 1
@@ -296,7 +493,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
             """Test domain model with single unique key."""
 
             id = fields.Int()
-            __unique_key__ = id
+            __unique_key__ = [id]
 
         user1 = Model()
         user1.id = 1
@@ -318,7 +515,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
             """Test domain model with single unique key."""
 
             id = fields.Int()
-            __unique_key__ = id
+            __unique_key__ = [id]
 
         user1 = Model()
         user1.id = 1
