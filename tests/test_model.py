@@ -7,45 +7,22 @@ from domain_models import model
 from domain_models import fields
 
 
-class User(model.DomainModel):
-    """Example user domain model."""
-
-    id = fields.Int()
-    email = fields.String()
-    first_name = fields.Unicode()
-    last_name = fields.Unicode()
-    gender = fields.String()
-    birth_date = fields.String()
-
-    __view_key__ = [id, email]
-    __unique_key__ = id
-
-
-class ExampleModel1(model.DomainModel):
-    """Example domain model."""
-
-    id = fields.Int()
-    __unique_key__ = id
-
-class ExampleModel2(model.DomainModel):
-    """Example domain model."""
-
-    id = fields.Int()
-    email = fields.String()
-    __unique_key__ = (id, email)
-
-class ExampleModel3(model.DomainModel):
-    """Example domain model."""
-
-    id = fields.Int()
-
-
 class BaseModelsTests(unittest.TestCase):
     """Basic model tests."""
 
+    class User(model.DomainModel):
+        """Example user domain model."""
+
+        id = fields.Int()
+        email = fields.String()
+        first_name = fields.Unicode()
+        last_name = fields.Unicode()
+        gender = fields.String()
+        birth_date = fields.String()
+
     def test_set_and_get_attrs(self):
         """Test setting and getting of domain model attributes."""
-        user1 = User()
+        user1 = self.User()
         user1.id = 1
         user1.email = 'example1@example.com'
         user1.first_name = 'John'
@@ -53,7 +30,7 @@ class BaseModelsTests(unittest.TestCase):
         user1.gender = 'male'
         user1.birth_date = '05/04/1988'
 
-        user2 = User()
+        user2 = self.User()
         user2.id = 2
         user2.email = 'example2@example.com'
         user2.first_name = 'Jane'
@@ -76,15 +53,54 @@ class BaseModelsTests(unittest.TestCase):
         self.assertEqual(user2.birth_date, '05/04/1985')
 
 
+class ModelSlotsOptimizationTests(unittest.TestCase):
+    """Tests for model slots optimizations."""
+
+    def test_model_slots(self):
+        """Test model slots optimization."""
+        class Model(model.DomainModel):
+            """Test model."""
+
+            field = fields.Field()
+
+        test_model = Model()
+        test_model.field = 'test'
+
+        self.assertEquals(test_model.field, 'test')
+        with self.assertRaises(AttributeError):
+            test_model.undefined_field = 'NaN'
+
+    def test_model_slots_disabling(self):
+        """Test disabling of model slots optimization."""
+        class Model(model.DomainModel):
+            """Test model."""
+
+            field = fields.Field()
+            __slots_optimization__ = False
+
+        test_model = Model()
+        test_model.field = 'test'
+        test_model.undefined_field = 'NaN'
+
+        self.assertEquals(test_model.field, 'test')
+        self.assertEquals(test_model.undefined_field, 'NaN')
+
+
 class ModelsEqualityComparationsTests(unittest.TestCase):
     """Tests for models equality comparations."""
 
     def test_models_equal_single_key(self):
         """Test models equality comparator based on unique key."""
-        user11 = ExampleModel1()
+        class Model(model.DomainModel):
+            """Test domain model with single unique key."""
+
+            id = fields.Int()
+            __unique_key__ = id
+
+        user11 = Model()
         user11.id = 1
 
-        user12 = ExampleModel1()
+        user12 = Model()
         user12.id = 1
 
         self.assertTrue(user11 == user12)
@@ -92,10 +108,16 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_single_key(self):
         """Test that models are not equal."""
-        user1 = ExampleModel1()
+        class Model(model.DomainModel):
+            """Test domain model with single unique key."""
+
+            id = fields.Int()
+            __unique_key__ = id
+
+        user1 = Model()
         user1.id = 1
 
-        user2 = ExampleModel1()
+        user2 = Model()
         user2.id = 2
 
         self.assertFalse(user1 == user2)
@@ -103,11 +125,18 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_equal_multiple_keys(self):
         """Test models equality comparator based on unique key."""
-        user11 = ExampleModel2()
+        class Model(model.DomainModel):
+            """Test domain model with multiple unique key."""
+
+            id = fields.Int()
+            email = fields.String()
+            __unique_key__ = (id, email)
+
+        user11 = Model()
         user11.id = 1
         user11.email = 'john@example.com'
 
-        user12 = ExampleModel2()
+        user12 = Model()
         user12.id = 1
         user12.email = 'john@example.com'
 
@@ -116,11 +145,18 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_multiple_keys(self):
         """Test that models are not equal."""
-        user1 = ExampleModel2()
+        class Model(model.DomainModel):
+            """Test domain model with multiple unique key."""
+
+            id = fields.Int()
+            email = fields.String()
+            __unique_key__ = (id, email)
+
+        user1 = Model()
         user1.id = 1
         user1.email = 'john@example.com'
 
-        user2 = ExampleModel2()
+        user2 = Model()
         user2.id = 2
         user2.email = 'jane@example.com'
 
@@ -129,11 +165,18 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_multiple_keys_first_equal(self):
         """Test that models are not equal."""
-        user11 = ExampleModel2()
+        class Model(model.DomainModel):
+            """Test domain model with multiple unique key."""
+
+            id = fields.Int()
+            email = fields.String()
+            __unique_key__ = (id, email)
+
+        user11 = Model()
         user11.id = 1
         user11.email = 'john@example.com'
 
-        user12 = ExampleModel2()
+        user12 = Model()
         user12.id = 1
         user12.email = 'jane@example.com'
 
@@ -142,18 +185,36 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_different_classes(self):
         """Test that models are not equal."""
-        user1 = ExampleModel1()
+        class Model1(model.DomainModel):
+            """Test domain model with single unique key."""
+
+            id = fields.Int()
+            __unique_key__ = id
+
+        class Model2(model.DomainModel):
+            """Test domain model with single unique key."""
+
+            id = fields.Int()
+            __unique_key__ = id
+
+        user1 = Model1()
         user1.id = 1
 
-        user2 = ExampleModel2()
+        user2 = Model2()
         user2.id = 1
 
         self.assertFalse(user1 == user2)
         self.assertTrue(user1 != user2)
 
     def test_models_not_equal_scalar_value(self):
-        """Test that models are not equal."""
-        user1 = ExampleModel1()
+        """Test that model and scalar value are not equal."""
+        class Model(model.DomainModel):
+            """Test domain model with single unique key."""
+
+            id = fields.Int()
+            __unique_key__ = id
+
+        user1 = Model()
         user1.id = 1
 
         self.assertFalse(user1 == 1)
@@ -161,10 +222,15 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_unknown_unique_key(self):
         """Test that models are not equal."""
-        user1 = ExampleModel3()
+        class Model(model.DomainModel):
+            """Test domain model without unique key."""
+
+            id = fields.Int()
+
+        user1 = Model()
         user1.id = 1
 
-        user2 = ExampleModel3()
+        user2 = Model()
         user2.id = 1
 
         self.assertFalse(user1 == user2)
@@ -172,7 +238,12 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_same_models_equal_unknown_unique_key(self):
         """Test that models are not equal."""
-        user1 = ExampleModel3()
+        class Model(model.DomainModel):
+            """Test domain model without unique key."""
+
+            id = fields.Int()
+
+        user1 = Model()
         user1.id = 1
 
         self.assertTrue(user1 == user1)
@@ -180,11 +251,17 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_single_key(self):
         """Test that non-equal models work properly with sets."""
-        user1 = ExampleModel1()
+        class Model(model.DomainModel):
+            """Test domain model with single unique key."""
+
+            id = fields.Int()
+            __unique_key__ = id
+
+        user1 = Model()
         user1.id = 1
-        user2 = ExampleModel1()
+        user2 = Model()
         user2.id = 2
-        user3 = ExampleModel1()
+        user3 = Model()
         user3.id = 3
 
         users_set = set((user1, user2, user3))
@@ -196,11 +273,17 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_single_key(self):
         """Test that equal models work properly with sets."""
-        user1 = ExampleModel1()
+        class Model(model.DomainModel):
+            """Test domain model with single unique key."""
+
+            id = fields.Int()
+            __unique_key__ = id
+
+        user1 = Model()
         user1.id = 1
-        user2 = ExampleModel1()
+        user2 = Model()
         user2.id = 1
-        user3 = ExampleModel1()
+        user3 = Model()
         user3.id = 1
 
         users_set = set((user1, user2, user3))
@@ -212,13 +295,20 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_multiple_keys(self):
         """Test that non-equal models work properly with sets."""
-        user1 = ExampleModel2()
+        class Model(model.DomainModel):
+            """Test domain model with multiple unique key."""
+
+            id = fields.Int()
+            email = fields.String()
+            __unique_key__ = (id, email)
+
+        user1 = Model()
         user1.id = 1
         user1.email = 'email1@example.com'
-        user2 = ExampleModel2()
+        user2 = Model()
         user2.id = 2
         user2.email = 'email2@example.com'
-        user3 = ExampleModel2()
+        user3 = Model()
         user3.id = 3
         user3.email = 'email3@example.com'
 
@@ -231,13 +321,20 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_multiple_keys(self):
         """Test that equal models work properly with sets."""
-        user1 = ExampleModel2()
+        class Model(model.DomainModel):
+            """Test domain model with multiple unique key."""
+
+            id = fields.Int()
+            email = fields.String()
+            __unique_key__ = (id, email)
+
+        user1 = Model()
         user1.id = 1
         user1.email = 'email1@example.com'
-        user2 = ExampleModel2()
+        user2 = Model()
         user2.id = 1
         user2.email = 'email1@example.com'
-        user3 = ExampleModel2()
+        user3 = Model()
         user3.id = 1
         user3.email = 'email1@example.com'
 
@@ -250,11 +347,16 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_without_unique_key(self):
         """Test that non-equal models work properly with sets."""
-        user1 = ExampleModel3()
+        class Model(model.DomainModel):
+            """Test domain model without unique key."""
+
+            id = fields.Int()
+
+        user1 = Model()
         user1.id = 1
-        user2 = ExampleModel3()
+        user2 = Model()
         user2.id = 2
-        user3 = ExampleModel3()
+        user3 = Model()
         user3.id = 3
 
         users_set = set((user1, user2, user3))
@@ -266,7 +368,12 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_without_unique_key(self):
         """Test that equal models work properly with sets."""
-        user1 = ExampleModel3()
+        class Model(model.DomainModel):
+            """Test domain model without unique key."""
+
+            id = fields.Int()
+
+        user1 = Model()
         user1.id = 1
         user2 = user1
         user3 = user1

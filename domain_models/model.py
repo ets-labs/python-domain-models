@@ -11,19 +11,28 @@ class DomainModelMetaClass(type):
 
     def __new__(mcs, class_name, bases, attributes):
         """Domain model class factory."""
-        cls = type.__new__(mcs, class_name, bases, attributes)
+        attributes['__fields__'] = tuple(field.bind_name(name)
+                                         for name, field in six.iteritems(
+                                             attributes)
+                                         if isinstance(field, fields.Field))
 
-        cls.__fields__ = tuple(field.bind(model_cls=cls, name=name)
-                               for name, field in six.iteritems(attributes)
-                               if isinstance(field, fields.Field))
+        if attributes.get('__slots_optimization__', True):
+            attributes['__slots__'] = tuple(
+                field.storage_name for field in attributes['__fields__'])
 
         unique_key = attributes.get('__unique_key__')
-        if isinstance(unique_key, fields.Field):
-            cls.__unique_key__ = (unique_key,)
+        if not unique_key:
+            unique_key = tuple()
         elif isinstance(unique_key, collections.Iterable):
-            cls.__unique_key__ = tuple(unique_key)
-        else:
-            cls.__unique_key__ = tuple()
+            unique_key = tuple(unique_key)
+        elif isinstance(unique_key, fields.Field):
+            unique_key = tuple([unique_key])
+        attributes['__unique_key__'] = unique_key
+
+        cls = type.__new__(mcs, class_name, bases, attributes)
+
+        for field in cls.__fields__:
+            field.bind_model_cls(cls)
 
         return cls
 
@@ -40,11 +49,13 @@ class DomainModel(object):
     __fields__ = tuple()
     __view_key__ = tuple()
     __unique_key__ = tuple()
+    __slots_optimization__ = True
 
     def __init__(self, **kwargs):
         """Initializer."""
         for field in self.__class__.__fields__:
             field.init_model(self, kwargs.get(field.name))
+        super(DomainModel, self).__init__()
 
     def __eq__(self, other):
         """Make equality comparation based on unique key.

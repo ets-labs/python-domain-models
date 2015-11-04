@@ -14,11 +14,15 @@ class Field(property):
         self.default = default
         super(Field, self).__init__(self.get_value, self.set_value)
 
-    def bind(self, model_cls, name):
-        """Post initializer."""
-        self.model_cls = model_cls
+    def bind_name(self, name):
+        """Bind field with its name in model class."""
         self.name = name
         self.storage_name = ''.join(('_', self.name))
+        return self
+
+    def bind_model_cls(self, cls):
+        """Bind field with its model class."""
+        self.model_ = cls
         return self
 
     def init_model(self, model, value):
