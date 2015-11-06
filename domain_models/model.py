@@ -12,21 +12,22 @@ class DomainModelMetaClass(type):
 
     def __new__(mcs, class_name, bases, attributes):
         """Domain model class factory."""
-        attributes['__fields__'] = mcs.parse_fields(attributes)
+        model_fields = mcs.parse_fields(attributes)
 
         if attributes.get('__slots_optimization__', True):
-            attributes['__slots__'] = mcs.get_model_slots(
-                attributes['__fields__'])
+            attributes['__slots__'] = mcs.prepare_model_slots(model_fields)
 
-        attributes['__unique_key__'] = mcs.prepare_fields_attribute(
+        cls = type.__new__(mcs, class_name, bases, attributes)
+
+        cls.__fields__ = mcs.bind_fields_to_model_cls(cls, model_fields)
+        cls.__unique_key__ = mcs.prepare_fields_attribute(
             attribute_name='__unique_key__', attributes=attributes,
             class_name=class_name)
-
-        attributes['__view_key__'] = mcs.prepare_fields_attribute(
+        cls.__view_key__ = mcs.prepare_fields_attribute(
             attribute_name='__view_key__', attributes=attributes,
             class_name=class_name)
 
-        return type.__new__(mcs, class_name, bases, attributes)
+        return cls
 
     @staticmethod
     def parse_fields(attributes):
@@ -36,7 +37,7 @@ class DomainModelMetaClass(type):
                      if isinstance(field, fields.Field))
 
     @staticmethod
-    def get_model_slots(model_fields):
+    def prepare_model_slots(model_fields):
         """Return tuple of model field slots."""
         return tuple(field.storage_name for field in model_fields)
 
@@ -53,6 +54,12 @@ class DomainModelMetaClass(type):
                                'instead {3} given', class_name, attribute_name,
                                fields.Field, attribute)
         return attribute
+
+    @staticmethod
+    def bind_fields_to_model_cls(cls, model_fields):
+        """Bind fields to model class."""
+        return tuple(field.bind_model_cls(cls)
+                     for field in model_fields)
 
 
 @six.python_2_unicode_compatible

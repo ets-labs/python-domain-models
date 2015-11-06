@@ -6,6 +6,7 @@ import unittest2 as unittest
 
 from domain_models import model
 from domain_models import fields
+from domain_models import errors
 
 
 class ExampleModel(model.DomainModel):
@@ -24,6 +25,17 @@ class FieldTest(unittest.TestCase):
         model = ExampleModel()
         model.field = 123
         self.assertEquals(model.field, 123)
+
+    def test_model_cls_could_not_be_rebound(self):
+        """Test that field model class could not be rebound."""
+        class Model(model.DomainModel):
+            """Test model."""
+
+        field = fields.Field()
+
+        field.bind_model_cls(Model)
+        with self.assertRaises(errors.Error):
+            field.bind_model_cls(Model)
 
     def test_field_default(self):
         """Test field default value."""
