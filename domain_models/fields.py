@@ -1,5 +1,7 @@
 """Domain models fields."""
 
+import datetime
+
 import six
 
 from . import errors
@@ -7,6 +9,9 @@ from . import errors
 
 class Field(property):
     """Base field."""
+
+    _converter = lambda _, value: value
+    """Convert raw input value of the field."""
 
     def __init__(self, default=None):
         """Initializer."""
@@ -48,28 +53,61 @@ class Field(property):
 
     def set_value(self, model, value):
         """Set field's value."""
+        if value is not None:
+            value = self._converter(value)
         setattr(model, self.storage_name, value)
+
+
+class Bool(Field):
+    """Bool field."""
+
+    _converter = lambda _, value: bool(value)
+    """Convert raw input value of the field."""
 
 
 class Int(Field):
     """Int field."""
 
-    def set_value(self, model, value):
-        """Set field's value."""
-        setattr(model, self.storage_name, int(value))
+    _converter = lambda _, value: int(value)
+    """Convert raw input value of the field."""
+
+
+class Float(Field):
+    """Float field."""
+
+    _converter = lambda _, value: float(value)
+    """Convert raw input value of the field."""
 
 
 class String(Field):
     """String field."""
 
-    def set_value(self, model, value):
-        """Set field's value."""
-        setattr(model, self.storage_name, str(value))
+    _converter = lambda _, value: str(value)
+    """Convert raw input value of the field."""
 
 
-class Unicode(Field):
-    """Unicode string field."""
+class Binary(Field):
+    """Binary field."""
 
-    def set_value(self, model, value):
-        """Set field's value."""
-        setattr(model, self.storage_name, six.u(value))
+    _converter = lambda _, value: six.binary_type(value)
+    """Convert raw input value of the field."""
+
+
+class Date(Field):
+    """Date field."""
+
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        if not isinstance(value, datetime.date):
+            raise TypeError('{0} is not valid date'.format(value))
+        return value
+
+
+class DateTime(Field):
+    """Date and time field."""
+
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        if not isinstance(value, datetime.datetime):
+            raise TypeError('{0} is not valid date and time')
+        return value

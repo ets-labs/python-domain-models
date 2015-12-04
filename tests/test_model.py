@@ -1,6 +1,5 @@
 """Model unittests."""
 
-import six
 import unittest2 as unittest
 
 from domain_models import model
@@ -18,8 +17,8 @@ class BaseModelsTests(unittest.TestCase):
 
             id = fields.Int()
             email = fields.String()
-            first_name = fields.Unicode()
-            last_name = fields.Unicode()
+            first_name = fields.String()
+            last_name = fields.String()
             gender = fields.String()
             birth_date = fields.String()
 
@@ -41,15 +40,15 @@ class BaseModelsTests(unittest.TestCase):
 
         self.assertEqual(user1.id, 1)
         self.assertEqual(user1.email, 'example1@example.com')
-        self.assertEqual(user1.first_name, six.u('John'))
-        self.assertEqual(user1.last_name, six.u('Smith'))
+        self.assertEqual(user1.first_name, 'John')
+        self.assertEqual(user1.last_name, 'Smith')
         self.assertEqual(user1.gender, 'male')
         self.assertEqual(user1.birth_date, '05/04/1988')
 
         self.assertEqual(user2.id, 2)
         self.assertEqual(user2.email, 'example2@example.com')
-        self.assertEqual(user2.first_name, six.u('Jane'))
-        self.assertEqual(user2.last_name, six.u('Smith'))
+        self.assertEqual(user2.first_name, 'Jane')
+        self.assertEqual(user2.last_name, 'Smith')
         self.assertEqual(user2.gender, 'female')
         self.assertEqual(user2.birth_date, '05/04/1985')
 
@@ -60,8 +59,8 @@ class BaseModelsTests(unittest.TestCase):
 
             id = fields.Int()
             email = fields.String()
-            first_name = fields.Unicode()
-            last_name = fields.Unicode()
+            first_name = fields.String()
+            last_name = fields.String()
             gender = fields.String()
             birth_date = fields.String()
 
@@ -175,8 +174,8 @@ class ModelReprTests(unittest.TestCase):
 
             id = fields.Int()
             email = fields.String()
-            first_name = fields.Unicode()
-            last_name = fields.Unicode()
+            first_name = fields.String()
+            last_name = fields.String()
             gender = fields.String()
             birth_date = fields.String()
 
@@ -193,8 +192,8 @@ class ModelReprTests(unittest.TestCase):
         self.assertIn('test_model.User', user_repr)
         self.assertIn('id=1', user_repr)
         self.assertIn('email=\'example1@example.com\'', user_repr)
-        self.assertIn('first_name={0}'.format(repr(six.u('John'))), user_repr)
-        self.assertIn('last_name={0}'.format(repr(six.u('Smith'))), user_repr)
+        self.assertIn('first_name={0}'.format(repr('John')), user_repr)
+        self.assertIn('last_name={0}'.format(repr('Smith')), user_repr)
         self.assertIn('gender=\'male\'', user_repr)
         self.assertIn('birth_date=\'05/04/1988\'', user_repr)
 
@@ -209,8 +208,8 @@ class ModelStrTests(unittest.TestCase):
 
             id = fields.Int()
             email = fields.String()
-            first_name = fields.Unicode()
-            last_name = fields.Unicode()
+            first_name = fields.String()
+            last_name = fields.String()
             gender = fields.String()
             birth_date = fields.String()
 
@@ -230,8 +229,8 @@ class ModelStrTests(unittest.TestCase):
         self.assertIn('id=1', user_str)
 
         self.assertNotIn('example1@example.com', user_str)
-        self.assertNotIn(six.u('John'), user_str)
-        self.assertNotIn(six.u('Smith'), user_str)
+        self.assertNotIn('John', user_str)
+        self.assertNotIn('Smith', user_str)
         self.assertNotIn('male', user_str)
         self.assertNotIn('05/04/1988', user_str)
 
@@ -242,8 +241,8 @@ class ModelStrTests(unittest.TestCase):
 
             id = fields.Int()
             email = fields.String()
-            first_name = fields.Unicode()
-            last_name = fields.Unicode()
+            first_name = fields.String()
+            last_name = fields.String()
             gender = fields.String()
             birth_date = fields.String()
 
@@ -263,8 +262,8 @@ class ModelStrTests(unittest.TestCase):
         self.assertIn('id=1', user_str)
         self.assertIn('email=example1@example.com', user_str)
 
-        self.assertNotIn(six.u('John'), user_str)
-        self.assertNotIn(six.u('Smith'), user_str)
+        self.assertNotIn('John', user_str)
+        self.assertNotIn('Smith', user_str)
         self.assertNotIn('male', user_str)
         self.assertNotIn('05/04/1988', user_str)
 
@@ -275,8 +274,8 @@ class ModelStrTests(unittest.TestCase):
 
             id = fields.Int()
             email = fields.String()
-            first_name = fields.Unicode()
-            last_name = fields.Unicode()
+            first_name = fields.String()
+            last_name = fields.String()
             gender = fields.String()
             birth_date = fields.String()
 
