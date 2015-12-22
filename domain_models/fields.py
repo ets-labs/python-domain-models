@@ -111,3 +111,21 @@ class DateTime(Field):
         if not isinstance(value, datetime.datetime):
             raise TypeError('{0} is not valid date and time')
         return value
+
+
+class Model(Field):
+    """Model relation field."""
+
+    def __init__(self, related_model_cls, default=None):
+        """Initializer."""
+        super(Model, self).__init__(default=default)
+
+        self.related_model_cls = related_model_cls
+
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        if not isinstance(value, self.related_model_cls):
+            raise TypeError('{0} is not valid model instance, instance of '
+                            '{1} required'.format(value,
+                                                  self.related_model_cls))
+        return value

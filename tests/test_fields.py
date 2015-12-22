@@ -11,6 +11,10 @@ from domain_models import fields
 from domain_models import errors
 
 
+class RelatedModel(model.DomainModel):
+    """Example model that is used for testing relations."""
+
+
 class ExampleModel(model.DomainModel):
     """Example model."""
 
@@ -28,6 +32,8 @@ class ExampleModel(model.DomainModel):
 
     date_field = fields.Date()
     datetime_field = fields.DateTime()
+
+    model_field = fields.Model(RelatedModel)
 
 
 class FieldTest(unittest.TestCase):
@@ -320,3 +326,34 @@ class DateTimeTest(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             model.datetime_field = some_object
+
+
+class ModelTest(unittest.TestCase):
+    """Date and time field tests."""
+
+    def test_set_value(self):
+        """Test setting of correct value."""
+        model = ExampleModel()
+        related_model = RelatedModel()
+
+        model.model_field = related_model
+
+        self.assertEqual(model.model_field, related_model)
+
+    def test_reset_value(self):
+        """Test resetting of value."""
+        model = ExampleModel()
+        related_model = RelatedModel()
+
+        model.model_field = related_model
+        model.model_field = None
+
+        self.assertIsNone(model.model_field)
+
+    def test_set_incorrect(self):
+        """Test setting of incorrect value."""
+        model = ExampleModel()
+        some_object = object()
+
+        with self.assertRaises(TypeError):
+            model.model_field = some_object
