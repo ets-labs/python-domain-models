@@ -1,4 +1,4 @@
-"""Domain models error module."""
+"""Errors module."""
 
 
 class Error(Exception):

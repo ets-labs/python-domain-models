@@ -1,8 +1,8 @@
-"""Model unittests."""
+"""Models tests."""
 
 import unittest2 as unittest
 
-from domain_models import model
+from domain_models import models
 from domain_models import fields
 from domain_models import errors
 
@@ -12,7 +12,7 @@ class BaseModelsTests(unittest.TestCase):
 
     def test_set_and_get_attrs(self):
         """Test setting and getting of domain model attributes."""
-        class User(model.DomainModel):
+        class User(models.DomainModel):
             """Test user domain model."""
 
             id = fields.Int()
@@ -54,7 +54,7 @@ class BaseModelsTests(unittest.TestCase):
 
     def test_data_attr(self):
         """Test model's __data__ attribute."""
-        class User(model.DomainModel):
+        class User(models.DomainModel):
             """Test user domain model."""
 
             id = fields.Int()
@@ -96,7 +96,7 @@ class BaseModelsTests(unittest.TestCase):
     def test_not_valid_unique_key_field(self):
         """Test that error is raised when unique key is not correct."""
         with self.assertRaises(errors.Error):
-            class Model(model.DomainModel):
+            class Model(models.DomainModel):
                 """Test model."""
 
                 __unique_key__ = fields.Field()
@@ -104,7 +104,7 @@ class BaseModelsTests(unittest.TestCase):
     def test_not_valid_unique_key_object(self):
         """Test that error is raised when unique key is not correct."""
         with self.assertRaises(errors.Error):
-            class Model(model.DomainModel):
+            class Model(models.DomainModel):
                 """Test model."""
 
                 __unique_key__ = object()
@@ -112,7 +112,7 @@ class BaseModelsTests(unittest.TestCase):
     def test_not_valid_unique_key_scalar(self):
         """Test that error is raised when unique key is not correct."""
         with self.assertRaises(errors.Error):
-            class Model(model.DomainModel):
+            class Model(models.DomainModel):
                 """Test model."""
 
                 __unique_key__ = 1
@@ -120,7 +120,7 @@ class BaseModelsTests(unittest.TestCase):
     def test_not_valid_view_key_field(self):
         """Test that error is raised when view key is not correct."""
         with self.assertRaises(errors.Error):
-            class Model(model.DomainModel):
+            class Model(models.DomainModel):
                 """Test model."""
 
                 __view_key__ = fields.Field()
@@ -128,7 +128,7 @@ class BaseModelsTests(unittest.TestCase):
     def test_not_valid_view_key_object(self):
         """Test that error is raised when view key is not correct."""
         with self.assertRaises(errors.Error):
-            class Model(model.DomainModel):
+            class Model(models.DomainModel):
                 """Test model."""
 
                 __view_key__ = object()
@@ -136,7 +136,7 @@ class BaseModelsTests(unittest.TestCase):
     def test_not_valid_view_key_scalar(self):
         """Test that error is raised when view key is not correct."""
         with self.assertRaises(errors.Error):
-            class Model(model.DomainModel):
+            class Model(models.DomainModel):
                 """Test model."""
 
                 __view_key__ = 1
@@ -144,7 +144,7 @@ class BaseModelsTests(unittest.TestCase):
     def test_field_could_not_be_rebound_in_same_model(self):
         """Test that field could not be rebound."""
         with self.assertRaises(errors.Error):
-            class Model(model.DomainModel):
+            class Model(models.DomainModel):
                 """Test model."""
 
                 field = fields.Field()
@@ -152,13 +152,13 @@ class BaseModelsTests(unittest.TestCase):
 
     def test_field_could_not_be_rebound_in_different_model(self):
         """Test that field could not be rebound."""
-        class Model1(model.DomainModel):
+        class Model1(models.DomainModel):
             """Test model."""
 
             field = fields.Field()
 
         with self.assertRaises(errors.Error):
-            class Model2(model.DomainModel):
+            class Model2(models.DomainModel):
                 """Test model."""
 
                 field = Model1.field
@@ -169,7 +169,7 @@ class ModelReprTests(unittest.TestCase):
 
     def test_repr(self):
         """Test model __repr__()."""
-        class User(model.DomainModel):
+        class User(models.DomainModel):
             """Test user domain model."""
 
             id = fields.Int()
@@ -189,7 +189,7 @@ class ModelReprTests(unittest.TestCase):
 
         user_repr = repr(user)
 
-        self.assertIn('test_model.User', user_repr)
+        self.assertIn('test_models.User', user_repr)
         self.assertIn('id=1', user_repr)
         self.assertIn('email=\'example1@example.com\'', user_repr)
         self.assertIn('first_name={0}'.format(repr('John')), user_repr)
@@ -203,7 +203,7 @@ class ModelStrTests(unittest.TestCase):
 
     def test_str_with_single_view_key(self):
         """Test model __str__()."""
-        class User(model.DomainModel):
+        class User(models.DomainModel):
             """Test user domain model."""
 
             id = fields.Int()
@@ -225,7 +225,7 @@ class ModelStrTests(unittest.TestCase):
 
         user_str = str(user)
 
-        self.assertIn('test_model.User', user_str)
+        self.assertIn('test_models.User', user_str)
         self.assertIn('id=1', user_str)
 
         self.assertNotIn('example1@example.com', user_str)
@@ -236,7 +236,7 @@ class ModelStrTests(unittest.TestCase):
 
     def test_str_with_multiple_view_keys(self):
         """Test model __str__()."""
-        class User(model.DomainModel):
+        class User(models.DomainModel):
             """Test user domain model."""
 
             id = fields.Int()
@@ -258,7 +258,7 @@ class ModelStrTests(unittest.TestCase):
 
         user_str = str(user)
 
-        self.assertIn('test_model.User', user_str)
+        self.assertIn('test_models.User', user_str)
         self.assertIn('id=1', user_str)
         self.assertIn('email=example1@example.com', user_str)
 
@@ -269,7 +269,7 @@ class ModelStrTests(unittest.TestCase):
 
     def test_str_without_view_key(self):
         """Test model __str__()."""
-        class User(model.DomainModel):
+        class User(models.DomainModel):
             """Test user domain model."""
 
             id = fields.Int()
@@ -295,7 +295,7 @@ class ModelSlotsOptimizationTests(unittest.TestCase):
 
     def test_model_slots(self):
         """Test model slots optimization."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test model."""
 
             field = fields.Field()
@@ -309,7 +309,7 @@ class ModelSlotsOptimizationTests(unittest.TestCase):
 
     def test_model_slots_disabling(self):
         """Test disabling of model slots optimization."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test model."""
 
             field = fields.Field()
@@ -328,7 +328,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_equal_single_key(self):
         """Test models equality comparator based on unique key."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
             id = fields.Int()
@@ -345,7 +345,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_single_key(self):
         """Test that models are not equal."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
             id = fields.Int()
@@ -362,7 +362,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_equal_multiple_keys(self):
         """Test models equality comparator based on unique key."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
             id = fields.Int()
@@ -382,7 +382,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_multiple_keys(self):
         """Test that models are not equal."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
             id = fields.Int()
@@ -402,7 +402,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_multiple_keys_first_equal(self):
         """Test that models are not equal."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
             id = fields.Int()
@@ -422,13 +422,13 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_different_classes(self):
         """Test that models are not equal."""
-        class Model1(model.DomainModel):
+        class Model1(models.DomainModel):
             """Test domain model with single unique key."""
 
             id = fields.Int()
             __unique_key__ = [id]
 
-        class Model2(model.DomainModel):
+        class Model2(models.DomainModel):
             """Test domain model with single unique key."""
 
             id = fields.Int()
@@ -445,7 +445,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_scalar_value(self):
         """Test that model and scalar value are not equal."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
             id = fields.Int()
@@ -459,7 +459,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_unknown_unique_key(self):
         """Test that models are not equal."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model without unique key."""
 
             id = fields.Int()
@@ -475,7 +475,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_same_models_equal_unknown_unique_key(self):
         """Test that models are not equal."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model without unique key."""
 
             id = fields.Int()
@@ -488,7 +488,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_single_key(self):
         """Test that non-equal models work properly with sets."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
             id = fields.Int()
@@ -510,7 +510,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_single_key(self):
         """Test that equal models work properly with sets."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
             id = fields.Int()
@@ -532,7 +532,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_multiple_keys(self):
         """Test that non-equal models work properly with sets."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
             id = fields.Int()
@@ -558,7 +558,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_multiple_keys(self):
         """Test that equal models work properly with sets."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
             id = fields.Int()
@@ -584,7 +584,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_without_unique_key(self):
         """Test that non-equal models work properly with sets."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model without unique key."""
 
             id = fields.Int()
@@ -605,7 +605,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_without_unique_key(self):
         """Test that equal models work properly with sets."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test domain model without unique key."""
 
             id = fields.Int()

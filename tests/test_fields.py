@@ -1,4 +1,4 @@
-"""Domain model fields tests."""
+"""Fields tests."""
 
 import datetime
 import time
@@ -6,16 +6,17 @@ import time
 import six
 import unittest2 as unittest
 
-from domain_models import model
+from domain_models import models
+from domain_models import collections
 from domain_models import fields
 from domain_models import errors
 
 
-class RelatedModel(model.DomainModel):
+class RelatedModel(models.DomainModel):
     """Example model that is used for testing relations."""
 
 
-class ExampleModel(model.DomainModel):
+class ExampleModel(models.DomainModel):
     """Example model."""
 
     field = fields.Field()
@@ -34,6 +35,7 @@ class ExampleModel(model.DomainModel):
     datetime_field = fields.DateTime()
 
     model_field = fields.Model(RelatedModel)
+    collection_field = fields.Collection(RelatedModel)
 
 
 class FieldTest(unittest.TestCase):
@@ -56,7 +58,7 @@ class FieldTest(unittest.TestCase):
 
     def test_model_cls_could_not_be_rebound(self):
         """Test that field model class could not be rebound."""
-        class Model(model.DomainModel):
+        class Model(models.DomainModel):
             """Test model."""
 
         field = fields.Field()
@@ -329,7 +331,7 @@ class DateTimeTest(unittest.TestCase):
 
 
 class ModelTest(unittest.TestCase):
-    """Date and time field tests."""
+    """Model field tests."""
 
     def test_set_value(self):
         """Test setting of correct value."""
@@ -357,3 +359,62 @@ class ModelTest(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             model.model_field = some_object
+
+
+class CollectionTest(unittest.TestCase):
+    """Collection field tests."""
+
+    def test_set_value(self):
+        """Test setting of correct value."""
+        model = ExampleModel()
+        related_model = RelatedModel()
+
+        model.collection_field = [related_model]
+
+        self.assertEqual(model.collection_field, [related_model])
+        self.assertIsInstance(model.collection_field, collections.Collection)
+
+    def test_set_collection(self):
+        """Test setting of collection."""
+        model = ExampleModel()
+        related_model = RelatedModel()
+        some_collection = collections.Collection(RelatedModel, [related_model])
+
+        model.collection_field = some_collection
+
+        self.assertIs(model.collection_field, some_collection)
+
+    def test_set_child_collection(self):
+        """Test setting of collection."""
+        class RelatedModelChild(RelatedModel):
+            """Child class of related model."""
+
+        model = ExampleModel()
+        related_model = RelatedModelChild()
+        some_collection = collections.Collection(RelatedModelChild,
+                                                 [related_model])
+
+        model.collection_field = some_collection
+
+        self.assertIsNot(model.collection_field, some_collection)
+        self.assertIsInstance(model.collection_field, collections.Collection)
+        self.assertIs(model.collection_field.value_type, RelatedModel)
+        self.assertEqual(model.collection_field, [related_model])
+
+    def test_reset_value(self):
+        """Test resetting of value."""
+        model = ExampleModel()
+        related_model = RelatedModel()
+
+        model.collection_field = [related_model]
+        model.collection_field = None
+
+        self.assertIsNone(model.collection_field)
+
+    def test_set_incorrect(self):
+        """Test setting of incorrect value."""
+        model = ExampleModel()
+        some_object = object()
+
+        with self.assertRaises(TypeError):
+            model.collection_field = [some_object]
