@@ -4,6 +4,7 @@ import unittest2 as unittest
 
 from domain_models import models
 from domain_models import fields
+from domain_models import collections
 from domain_models import errors
 
 
@@ -621,3 +622,22 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
         self.assertIn(user1, users_set)
         self.assertIn(user2, users_set)
         self.assertIn(user3, users_set)
+
+    def test_models_collection_extending(self):
+        """Test model's collection extending."""
+        class Credit(models.DomainModel):
+            """Test credit domain model."""
+
+            amount = fields.Int()
+
+            class Collection(collections.Collection):
+                """Credits collection."""
+
+                @property
+                def total_amount(self):
+                    """Return sum of amounts of all contained credits."""
+                    return sum(credit.amount for credit in self)
+
+        credits = Credit.Collection([Credit(amount=1), Credit(amount=2)])
+
+        self.assertEqual(credits.total_amount, 3)

@@ -2,10 +2,11 @@
 
 from __future__ import absolute_import
 
-import collections
+import collections as std_collections
 import six
 
 from . import fields
+from . import collections
 from . import errors
 
 
@@ -29,6 +30,8 @@ class DomainModelMetaClass(type):
             attribute_name='__view_key__', attributes=attributes,
             class_name=class_name)
 
+        mcs.bind_collection_to_model_cls(cls)
+
         return cls
 
     @staticmethod
@@ -49,7 +52,7 @@ class DomainModelMetaClass(type):
         attribute = attributes.get(attribute_name)
         if not attribute:
             attribute = tuple()
-        elif isinstance(attribute, collections.Iterable):
+        elif isinstance(attribute, std_collections.Iterable):
             attribute = tuple(attribute)
         else:
             raise errors.Error('{0}.{1} is supposed to be a list of {2}, '
@@ -63,21 +66,50 @@ class DomainModelMetaClass(type):
         return tuple(field.bind_model_cls(cls)
                      for field in model_fields)
 
+    @staticmethod
+    def bind_collection_to_model_cls(cls):
+        """Bind collection to model's class.
+
+        If collection was not specialized in process of model's declaration,
+        subclass of collection will be created.
+        """
+        cls.Collection = type('{0}.Collection'.format(cls.__name__),
+                              (cls.Collection,),
+                              {'value_type': cls})
+        cls.Collection.__module__ = cls.__module__
+
 
 @six.python_2_unicode_compatible
 @six.add_metaclass(DomainModelMetaClass)
 class DomainModel(object):
     """Base domain model.
 
-    :param __fields__: Tuple of all model fields.
-    :type __fields__: tuple[fields.Field]
+    .. py:attribute:: Collection
 
-    :param __unique_key__: Tuple of model fields that represents unique key.
-    :type __unique_key__: tuple[fields.Field]
+        Model's collection class.
 
-    :param __view_key__: Tuple of model fields that represents view key.
-    :type __view_key__: tuple[fields.Field]
+        :type: collections.Collection
+
+    .. py:attribute:: __fields__
+
+        Tuple of all model fields.
+
+        :type: tuple[fields.Field]
+
+    .. py:attribute:: __unique_key__
+
+        Tuple of model fields that represents unique key.
+
+        :type: tuple[fields.Field]
+
+    .. py:attribute:: __view_key__
+
+        Tuple of model fields that represents view key.
+
+        :type: tuple[fields.Field]
     """
+
+    Collection = collections.Collection
 
     __fields__ = tuple()
     __view_key__ = tuple()

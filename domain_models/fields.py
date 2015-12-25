@@ -4,7 +4,6 @@ import datetime
 
 import six
 
-from . import collections
 from . import errors
 
 
@@ -138,15 +137,10 @@ class Collection(Field):
     def __init__(self, related_model_cls, default=None):
         """Initializer."""
         super(Collection, self).__init__(default=default)
-
         self.related_model_cls = related_model_cls
 
     def _converter(self, value):
         """Convert raw input value of the field."""
-        if isinstance(value, collections.Collection):
-            if value.value_type is not self.related_model_cls:
-                value = collections.Collection(self.related_model_cls, value)
-        else:
-            value = collections.Collection(self.related_model_cls, value)
-
+        if type(value) is not self.related_model_cls.Collection:
+            value = self.related_model_cls.Collection(value)
         return value

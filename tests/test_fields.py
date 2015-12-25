@@ -378,7 +378,7 @@ class CollectionTest(unittest.TestCase):
         """Test setting of collection."""
         model = ExampleModel()
         related_model = RelatedModel()
-        some_collection = collections.Collection(RelatedModel, [related_model])
+        some_collection = RelatedModel.Collection([related_model])
 
         model.collection_field = some_collection
 
@@ -391,13 +391,12 @@ class CollectionTest(unittest.TestCase):
 
         model = ExampleModel()
         related_model = RelatedModelChild()
-        some_collection = collections.Collection(RelatedModelChild,
-                                                 [related_model])
+        some_collection = RelatedModelChild.Collection([related_model])
 
         model.collection_field = some_collection
 
         self.assertIsNot(model.collection_field, some_collection)
-        self.assertIsInstance(model.collection_field, collections.Collection)
+        self.assertIsInstance(model.collection_field, RelatedModel.Collection)
         self.assertIs(model.collection_field.value_type, RelatedModel)
         self.assertEqual(model.collection_field, [related_model])
 

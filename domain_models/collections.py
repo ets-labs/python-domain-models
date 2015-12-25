@@ -2,19 +2,15 @@
 
 import six
 
-from . import errors
-
 
 class Collection(list):
     """Collection."""
 
-    def __init__(self, value_type, iterable=None, type_check=True):
-        """Initializer."""
-        if not isinstance(value_type, six.class_types):
-            raise errors.Error('Collection value_type should be valid type, '
-                               'instead got - {0}'.format(value_type))
-        self.value_type = value_type
+    value_type = object
+    """Type of values that collection could contain."""
 
+    def __init__(self, iterable=None, type_check=True):
+        """Initializer."""
         if not iterable:
             iterable = tuple()
 
@@ -41,8 +37,8 @@ class Collection(list):
     def __setitem__(self, index, value):
         """Set an item at a given position."""
         if isinstance(index, slice):
-            return super(Collection, self).__setitem__(
-                index, self.__class__(self.value_type, value))
+            return super(Collection, self).__setitem__(index,
+                                                       self.__class__(value))
         else:
             return super(Collection, self).__setitem__(
                 index, self._ensure_value_is_valid(value))
@@ -51,21 +47,20 @@ class Collection(list):
         """Return value by index or slice of values if index is slice."""
         value = super(Collection, self).__getitem__(index)
         if isinstance(index, slice):
-            return self.__class__(self.value_type, value, type_check=False)
+            return self.__class__(value, type_check=False)
         return value
 
     if six.PY2:  # pragma: nocover
         def __getslice__(self, start, stop):
             """Return slice of values."""
-            return self.__class__(self.value_type,
-                                  super(Collection, self).__getslice__(start,
+            return self.__class__(super(Collection, self).__getslice__(start,
                                                                        stop),
                                   type_check=False)
 
         def __setslice__(self, start, stop, iterable):
             """Set slice of values."""
-            iterable = self.__class__(self.value_type, iterable)
-            super(Collection, self).__setslice__(start, stop, iterable)
+            super(Collection, self).__setslice__(start, stop,
+                                                 self.__class__(iterable))
 
     def _ensure_iterable_is_valid(self, iterable):
         """Ensure that iterable values are a valid collection's values."""
@@ -75,7 +70,8 @@ class Collection(list):
 
     def _ensure_value_is_valid(self, value):
         """Ensure that value is a valid collection's value."""
-        if not isinstance(value, self.value_type):
+        if not isinstance(value, self.__class__.value_type):
             raise TypeError('{0} is not valid collection value, instance '
-                            'of {1} required'.format(value, self.value_type))
+                            'of {1} required'.format(
+                                value, self.__class__.value_type))
         return value
