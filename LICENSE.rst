@@ -1,4 +1,4 @@
-Copyright (c) 2015, Roman Mogilatov
+Copyright (c) 2015, ETS Labs
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

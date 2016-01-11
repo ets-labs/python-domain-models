@@ -1,5 +1,6 @@
 include domain_models/*
+include CONTRIBUTORS.rst
 include README.rst
-include LICENSE
+include LICENSE.rst
 include requirements.txt
 include setup.py
