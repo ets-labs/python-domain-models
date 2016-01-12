@@ -10,9 +10,6 @@ from . import errors
 class Field(property):
     """Base field."""
 
-    _converter = lambda _, value: value
-    """Convert raw input value of the field."""
-
     def __init__(self, default=None):
         """Initializer."""
         super(Field, self).__init__(self.get_value, self.set_value)
@@ -57,40 +54,49 @@ class Field(property):
             value = self._converter(value)
         setattr(model, self.storage_name, value)
 
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        return value
+
 
 class Bool(Field):
     """Bool field."""
 
-    _converter = lambda _, value: bool(value)
-    """Convert raw input value of the field."""
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        return bool(value)
 
 
 class Int(Field):
     """Int field."""
 
-    _converter = lambda _, value: int(value)
-    """Convert raw input value of the field."""
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        return int(value)
 
 
 class Float(Field):
     """Float field."""
 
-    _converter = lambda _, value: float(value)
-    """Convert raw input value of the field."""
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        return float(value)
 
 
 class String(Field):
     """String field."""
 
-    _converter = lambda _, value: str(value)
-    """Convert raw input value of the field."""
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        return str(value)
 
 
 class Binary(Field):
     """Binary field."""
 
-    _converter = lambda _, value: six.binary_type(value)
-    """Convert raw input value of the field."""
+    def _converter(self, value):
+        """Convert raw input value of the field."""
+        return six.binary_type(value)
 
 
 class Date(Field):
