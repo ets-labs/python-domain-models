@@ -10,7 +10,7 @@ from . import errors
 class Field(property):
     """Base field."""
 
-    def __init__(self, default=None):
+    def __init__(self, default=None, required=False):
         """Initializer."""
         super(Field, self).__init__(self.get_value, self.set_value)
         self.name = None
@@ -19,6 +19,7 @@ class Field(property):
         self.model_cls = None
 
         self.default = default
+        self.required = required
 
     def bind_name(self, name):
         """Bind field to its name in model class."""
@@ -40,8 +41,12 @@ class Field(property):
 
     def init_model(self, model, value):
         """Init model with field."""
-        if not value:
+        if value is None:
             value = self.default() if callable(self.default) else self.default
+
+        if value is None and self.required:
+            raise AttributeError("This field is required.")
+
         setattr(model, self.storage_name, value)
 
     def get_value(self, model):
@@ -50,6 +55,9 @@ class Field(property):
 
     def set_value(self, model, value):
         """Set field's value."""
+        if value is None and self.required:
+            raise AttributeError("This field is required.")
+
         if value is not None:
             value = self._converter(value)
         setattr(model, self.storage_name, value)
