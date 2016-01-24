@@ -3,6 +3,16 @@ Domain models
 
 Domain models framework for Python projects
 
+============
+
+.. image:: https://travis-ci.org/ets-labs/domain_models.svg?branch=master
+    :target: https://travis-ci.org/ets-labs/domain_models
+    :alt: Build Status
+
+.. image:: https://coveralls.io/repos/github/ets-labs/domain_models/badge.svg?branch=master
+    :target: https://coveralls.io/github/ets-labs/domain_models?branch=master
+    :alt: Coverage Status
+
 Introduction
 ~~~~~~~~~~~~
 

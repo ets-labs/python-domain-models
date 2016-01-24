@@ -22,6 +22,7 @@ class ExampleModel(models.DomainModel):
     field = fields.Field()
     field_default = fields.Field(default=123)
     field_default_callable = fields.Field(default=time.time)
+    field_required_default = fields.Field(default=123, required=True)
 
     bool_field = fields.Bool()
 
@@ -36,6 +37,11 @@ class ExampleModel(models.DomainModel):
 
     model_field = fields.Model(RelatedModel)
     collection_field = fields.Collection(RelatedModel)
+
+
+class RequiredFieldModel(models.DomainModel):
+    """Example model for required fields."""
+    field_required = fields.Field(required=True)
 
 
 class FieldTest(unittest.TestCase):
@@ -80,6 +86,37 @@ class FieldTest(unittest.TestCase):
 
         self.assertGreater(model2.field_default_callable,
                            model1.field_default_callable)
+
+    def test_field_required(self):
+        """Test required field with default value."""
+        model = ExampleModel()
+        self.assertEquals(model.field_required_default, 123)
+
+    def test_field_required_set_valid(self):
+        """Test required field with valid value."""
+        model = ExampleModel()
+        model.field_required_default = False
+        self.assertIs(model.field_required_default, False)
+
+    def test_field_required_set_invalid(self):
+        """Test required field with invalid value."""
+        model = ExampleModel()
+        with self.assertRaises(AttributeError):
+            model.field_required_default = None
+
+    def test_field_required_init_valid_model(self):
+        """Test required field with valid value as model keyword."""
+        model = RequiredFieldModel(field_required=False)
+        self.assertIs(model.field_required, False)
+        model.field_required = 123
+        self.assertEqual(model.field_required, 123)
+
+    def test_field_required_init_invalid_model(self):
+        """Test required field with invalid value as model keyword."""
+        with self.assertRaises(AttributeError):
+            RequiredFieldModel()
+        with self.assertRaises(AttributeError):
+            RequiredFieldModel(field_required=None)
 
 
 class BoolTest(unittest.TestCase):
