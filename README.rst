@@ -3,15 +3,31 @@ Domain models
 
 Domain models framework for Python projects
 
-============
-
-.. image:: https://travis-ci.org/ets-labs/domain_models.svg?branch=master
-    :target: https://travis-ci.org/ets-labs/domain_models
-    :alt: Build Status
-
-.. image:: https://coveralls.io/repos/github/ets-labs/domain_models/badge.svg?branch=master
-    :target: https://coveralls.io/github/ets-labs/domain_models?branch=master
-    :alt: Coverage Status
++---------------------------------------+---------------------------------------------------------------------------------------------------+
+| *PyPi*                                | .. image:: https://img.shields.io/pypi/v/domain_models.svg?style=flat-square                      |
+|                                       |    :target: https://pypi.python.org/pypi/domain_models/                                           |
+|                                       |    :alt: Latest Version                                                                           |
+|                                       | .. image:: https://img.shields.io/pypi/dm/domain_models.svg?style=flat-square                     |
+|                                       |    :target: https://pypi.python.org/pypi/domain_models/                                           |
+|                                       |    :alt: Downloads                                                                                |
+|                                       | .. image:: https://img.shields.io/pypi/l/domain_models.svg?style=flat-square                      |
+|                                       |    :target: https://pypi.python.org/pypi/domain_models/                                           |
+|                                       |    :alt: License                                                                                  |
++---------------------------------------+---------------------------------------------------------------------------------------------------+
+| *Python versions and implementations* | .. image:: https://img.shields.io/pypi/pyversions/domain_models.svg?style=flat-square             |
+|                                       |    :target: https://pypi.python.org/pypi/domain_models/                                           |
+|                                       |    :alt: Supported Python versions                                                                |
+|                                       | .. image:: https://img.shields.io/pypi/implementation/domain_models.svg?style=flat-square         |
+|                                       |    :target: https://pypi.python.org/pypi/domain_models/                                           |
+|                                       |    :alt: Supported Python implementations                                                         |
++---------------------------------------+---------------------------------------------------------------------------------------------------+
+| *Builds and tests coverage*           | .. image:: https://img.shields.io/travis/ets-labs/domain_models/master.svg?style=flat-square      |
+|                                       |    :target: https://travis-ci.org/ets-labs/domain_models                                          |
+|                                       |    :alt: Build Status                                                                             |
+|                                       | .. image:: https://img.shields.io/coveralls/ets-labs/domain_models/master.svg?style=flat-square   |
+|                                       |    :target: https://coveralls.io/r/ets-labs/domain_models                                         |
+|                                       |    :alt: Coverage Status                                                                          |
++---------------------------------------+---------------------------------------------------------------------------------------------------+
 
 Introduction
 ~~~~~~~~~~~~
