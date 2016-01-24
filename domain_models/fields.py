@@ -130,9 +130,9 @@ class DateTime(Field):
 class Model(Field):
     """Model relation field."""
 
-    def __init__(self, related_model_cls, default=None):
+    def __init__(self, related_model_cls, default=None, required=False):
         """Initializer."""
-        super(Model, self).__init__(default=default)
+        super(Model, self).__init__(default=default, required=required)
 
         self.related_model_cls = related_model_cls
 
@@ -148,9 +148,9 @@ class Model(Field):
 class Collection(Field):
     """Models collection relation field."""
 
-    def __init__(self, related_model_cls, default=None):
+    def __init__(self, related_model_cls, default=None, required=False):
         """Initializer."""
-        super(Collection, self).__init__(default=default)
+        super(Collection, self).__init__(default=default, required=required)
         self.related_model_cls = related_model_cls
 
     def _converter(self, value):
