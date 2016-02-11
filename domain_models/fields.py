@@ -62,6 +62,13 @@ class Field(property):
             value = self._converter(value)
         setattr(model, self.storage_name, value)
 
+    def is_valid_type(self, value):
+        """Check whether the value is valid type.
+
+        :param value:
+        """
+        return self._converter(value) == value
+
     def _converter(self, value):
         """Convert raw input value of the field."""
         return value

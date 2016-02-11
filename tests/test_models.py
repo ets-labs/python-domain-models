@@ -165,27 +165,37 @@ class BaseModelsTests(unittest.TestCase):
                 field = Model1.field
 
     def test_get_method(self):
+        mock_id = 2
+        mock_name = 'foobar'
+
         class SomeModel(models.DomainModel):
             """Test domain model."""
             id = fields.Int()
             name = fields.String()
-            not_required = fields.String()
+            string = fields.String()
 
-        model = SomeModel()
-        model.id = 2
-        model.name = 'some-name'
+        model = SomeModel(id=mock_id, name=mock_name)
 
-        id = model.get('id', 0)
-        self.assertEqual(id, 2)
+        self.assertEqual(model.get('id'), mock_id)
+        self.assertEqual(model.get('id', 0), mock_id)
+        self.assertEqual(model.get('id', 123), mock_id)
 
-        name = model.get('name', '')
-        self.assertEqual(name, 'some-name')
+        self.assertEqual(model.get('name'), mock_name)
+        self.assertEqual(model.get('name', ''), mock_name)
+        self.assertEqual(model.get('name', 'another-name'), mock_name)
 
-        not_required = model.get('not_required', '')
-        self.assertEqual(not_required, '')
+        self.assertEqual(model.get('string'), None)
+        self.assertEqual(model.get('string', ''), '')
+        self.assertEqual(model.get('string', 'not-empty'), 'not-empty')
+
+        string = model.get('string', '')
+        self.assertEqual(string, '')
 
         with self.assertRaises(AttributeError):
             model.get('unknown')
+
+        with self.assertRaises(AttributeError):
+            model.get('string', 0)
 
 
 class ModelReprTests(unittest.TestCase):

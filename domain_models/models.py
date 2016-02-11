@@ -185,10 +185,27 @@ class DomainModel(object):
                     for field in self.__class__.__fields__)
 
     def get(self, field_name, default=None):
-        """DomainModel analogue for dict.get python built-in method.
+        """Return the value of the field.
+
+        Analogue for `dict.get()` python method.
+        `field_name` must be a string. If the string is the name of
+        one of the existent fields, the result is the value of that field.
+        For example, `model.get('foobar')` is equivalent to `model.foobar`.
+        If the filed does not have a value, `default` is returned if provided.
+        It will raise `AttributeError` if `default` is not the same type
+        as field value.
+        If the field does not exist, `AttributeError` is raised as well.
 
         :param string field_name:
         :param mixed default:
         """
         value = getattr(self, field_name)
+
+        if default is not None and value is None:
+            field = dict((field.name, field) for field in
+                         self.__class__.__fields__).get(field_name)
+            if not field.is_valid_type(default):
+                raise AttributeError(
+                    "default must be the same type as the field.")
+
         return value if value else default
