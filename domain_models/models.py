@@ -183,3 +183,12 @@ class DomainModel(object):
         """Read only dictionary of model fields/values."""
         return dict((field.name, field.get_value(self))
                     for field in self.__class__.__fields__)
+
+    def get(self, field_name, default=None):
+        """DomainModel analogue for dict.get python built-in method.
+
+        :param string field_name:
+        :param mixed default:
+        """
+        value = getattr(self, field_name)
+        return value if value else default

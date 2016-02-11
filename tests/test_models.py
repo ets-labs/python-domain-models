@@ -164,6 +164,29 @@ class BaseModelsTests(unittest.TestCase):
 
                 field = Model1.field
 
+    def test_get_method(self):
+        class SomeModel(models.DomainModel):
+            """Test domain model."""
+            id = fields.Int()
+            name = fields.String()
+            not_required = fields.String()
+
+        model = SomeModel()
+        model.id = 2
+        model.name = 'some-name'
+
+        id = model.get('id', 0)
+        self.assertEqual(id, 2)
+
+        name = model.get('name', '')
+        self.assertEqual(name, 'some-name')
+
+        not_required = model.get('not_required', '')
+        self.assertEqual(not_required, '')
+
+        with self.assertRaises(AttributeError):
+            model.get('unknown')
+
 
 class ModelReprTests(unittest.TestCase):
     """Tests for model Pythonic representation."""
