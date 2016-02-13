@@ -63,8 +63,7 @@ class DomainModelMetaClass(type):
     @staticmethod
     def bind_fields_to_model_cls(cls, model_fields):
         """Bind fields to model class."""
-        return tuple(field.bind_model_cls(cls)
-                     for field in model_fields)
+        return dict(field.bind_model_cls(cls) for field in model_fields)
 
     @staticmethod
     def bind_collection_to_model_cls(cls):
@@ -111,15 +110,15 @@ class DomainModel(object):
 
     Collection = collections.Collection
 
-    __fields__ = tuple()
+    __fields__ = dict()
     __view_key__ = tuple()
     __unique_key__ = tuple()
     __slots_optimization__ = True
 
     def __init__(self, **kwargs):
         """Initializer."""
-        for field in self.__class__.__fields__:
-            field.init_model(self, kwargs.get(field.name))
+        for name, field in six.iteritems(self.__class__.__fields__):
+            field.init_model(self, kwargs.get(name))
         super(DomainModel, self).__init__()
 
     def __eq__(self, other):
@@ -164,14 +163,16 @@ class DomainModel(object):
         """Return Pythonic representation of domain model."""
         return '{module}.{cls}({fields_values})'.format(
             module=self.__class__.__module__, cls=self.__class__.__name__,
-            fields_values=', '.join('='.join((field.name,
-                                              repr(field.get_value(self))))
-                                    for field in self.__class__.__fields__))
+            fields_values=', '.join(
+                '='.join((name, repr(field.get_value(self))))
+                for name, field in
+                six.iteritems(self.__class__.__fields__)))
 
     def __str__(self):
         """Return string representation of domain model."""
         if not self.__class__.__view_key__:
             return self.__repr__()
+
         return '{module}.{cls}({fields_values})'.format(
             module=self.__class__.__module__, cls=self.__class__.__name__,
             fields_values=', '.join('='.join((field.name,
@@ -181,8 +182,9 @@ class DomainModel(object):
     @property
     def __data__(self):
         """Read only dictionary of model fields/values."""
-        return dict((field.name, field.get_value(self))
-                    for field in self.__class__.__fields__)
+        return dict((name, field.get_value(self))
+                    for name, field in
+                    six.iteritems(self.__class__.__fields__))
 
     def get(self, field_name, default=None):
         """Return the value of the field.
@@ -204,9 +206,8 @@ class DomainModel(object):
                 "Model doesn't have a field '{name}'".format(name=field_name))
 
         if default is not None:
-            field = dict((field.name, field) for field in
-                         self.__class__.__fields__).get(field_name)
             try:
+                field = self.__class__.__fields__[field_name]
                 default = field.converter(default)
             except (TypeError, ValueError):
                 raise AttributeError(

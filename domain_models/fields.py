@@ -37,7 +37,7 @@ class Field(property):
                                'could not be rebound to "{2}"'.format(
                                    self, self.model_cls, model_cls))
         self.model_cls = model_cls
-        return self
+        return self.name, self
 
     def init_model(self, model, value):
         """Init model with field."""
