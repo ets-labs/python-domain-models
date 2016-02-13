@@ -192,20 +192,25 @@ class DomainModel(object):
         one of the existent fields, the result is the value of that field.
         For example, `model.get('foobar')` is equivalent to `model.foobar`.
         If the filed does not have a value, `default` is returned if provided.
-        It will raise `AttributeError` if `default` is not the same type
-        as field value.
+        It will raise `AttributeError` if `default` can not be converted to
+        right type value.
         If the field does not exist, `AttributeError` is raised as well.
 
         :param string field_name:
         :param mixed default:
         """
-        value = getattr(self, field_name)
+        if not hasattr(self, field_name):
+            raise AttributeError(
+                "Model doesn't have a field '{name}'".format(name=field_name))
 
-        if default is not None and value is None:
+        if default is not None:
             field = dict((field.name, field) for field in
                          self.__class__.__fields__).get(field_name)
-            if not field.is_valid_type(default):
+            try:
+                default = field.converter(default)
+            except (TypeError, ValueError):
                 raise AttributeError(
-                    "default must be the same type as the field.")
+                    "default can not be converted to right type value")
 
-        return value if value else default
+        value = getattr(self, field_name)
+        return value if value is not None else default

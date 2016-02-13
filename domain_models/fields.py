@@ -41,8 +41,9 @@ class Field(property):
 
     def init_model(self, model, value):
         """Init model with field."""
-        if value is None:
+        if value is None and self.default is not None:
             value = self.default() if callable(self.default) else self.default
+            value = self.converter(value)
 
         if value is None and self.required:
             raise AttributeError("This field is required.")
@@ -59,17 +60,11 @@ class Field(property):
             raise AttributeError("This field is required.")
 
         if value is not None:
-            value = self._converter(value)
+            value = self.converter(value)
+
         setattr(model, self.storage_name, value)
 
-    def is_valid_type(self, value):
-        """Check whether the value is valid type.
-
-        :param value:
-        """
-        return self._converter(value) == value
-
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         return value
 
@@ -77,7 +72,7 @@ class Field(property):
 class Bool(Field):
     """Bool field."""
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         return bool(value)
 
@@ -85,7 +80,7 @@ class Bool(Field):
 class Int(Field):
     """Int field."""
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         return int(value)
 
@@ -93,7 +88,7 @@ class Int(Field):
 class Float(Field):
     """Float field."""
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         return float(value)
 
@@ -101,7 +96,7 @@ class Float(Field):
 class String(Field):
     """String field."""
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         return str(value)
 
@@ -109,7 +104,7 @@ class String(Field):
 class Binary(Field):
     """Binary field."""
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         return six.binary_type(value)
 
@@ -117,7 +112,7 @@ class Binary(Field):
 class Date(Field):
     """Date field."""
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         if not isinstance(value, datetime.date):
             raise TypeError('{0} is not valid date'.format(value))
@@ -127,7 +122,7 @@ class Date(Field):
 class DateTime(Field):
     """Date and time field."""
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         if not isinstance(value, datetime.datetime):
             raise TypeError('{0} is not valid date and time')
@@ -143,7 +138,7 @@ class Model(Field):
 
         self.related_model_cls = related_model_cls
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         if not isinstance(value, self.related_model_cls):
             raise TypeError('{0} is not valid model instance, instance of '
@@ -160,7 +155,7 @@ class Collection(Field):
         super(Collection, self).__init__(default=default, required=required)
         self.related_model_cls = related_model_cls
 
-    def _converter(self, value):
+    def converter(self, value):
         """Convert raw input value of the field."""
         if type(value) is not self.related_model_cls.Collection:
             value = self.related_model_cls.Collection(value)
