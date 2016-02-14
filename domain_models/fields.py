@@ -37,22 +37,30 @@ class Field(property):
                                'could not be rebound to "{2}"'.format(
                                    self, self.model_cls, model_cls))
         self.model_cls = model_cls
-        return self.name, self
+        return self
 
     def init_model(self, model, value):
         """Init model with field."""
         if value is None and self.default is not None:
             value = self.default() if callable(self.default) else self.default
-            value = self.converter(value)
+            value = self._converter(value)
 
         if value is None and self.required:
             raise AttributeError("This field is required.")
 
         setattr(model, self.storage_name, value)
 
-    def get_value(self, model):
-        """Return field's value."""
-        return getattr(model, self.storage_name)
+    def get_value(self, model, default=None):
+        """Return field's value.
+
+        :param DomainModel model:
+        :param mixed default:
+        """
+        if default is not None:
+            default = self._converter(default)
+
+        value = getattr(model, self.storage_name)
+        return value if value is not None else default
 
     def set_value(self, model, value):
         """Set field's value."""
@@ -60,11 +68,11 @@ class Field(property):
             raise AttributeError("This field is required.")
 
         if value is not None:
-            value = self.converter(value)
+            value = self._converter(value)
 
         setattr(model, self.storage_name, value)
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         return value
 
@@ -72,7 +80,7 @@ class Field(property):
 class Bool(Field):
     """Bool field."""
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         return bool(value)
 
@@ -80,7 +88,7 @@ class Bool(Field):
 class Int(Field):
     """Int field."""
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         return int(value)
 
@@ -88,7 +96,7 @@ class Int(Field):
 class Float(Field):
     """Float field."""
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         return float(value)
 
@@ -96,7 +104,7 @@ class Float(Field):
 class String(Field):
     """String field."""
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         return str(value)
 
@@ -104,7 +112,7 @@ class String(Field):
 class Binary(Field):
     """Binary field."""
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         return six.binary_type(value)
 
@@ -112,7 +120,7 @@ class Binary(Field):
 class Date(Field):
     """Date field."""
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         if not isinstance(value, datetime.date):
             raise TypeError('{0} is not valid date'.format(value))
@@ -122,7 +130,7 @@ class Date(Field):
 class DateTime(Field):
     """Date and time field."""
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         if not isinstance(value, datetime.datetime):
             raise TypeError('{0} is not valid date and time')
@@ -138,7 +146,7 @@ class Model(Field):
 
         self.related_model_cls = related_model_cls
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         if not isinstance(value, self.related_model_cls):
             raise TypeError('{0} is not valid model instance, instance of '
@@ -155,7 +163,7 @@ class Collection(Field):
         super(Collection, self).__init__(default=default, required=required)
         self.related_model_cls = related_model_cls
 
-    def converter(self, value):
+    def _converter(self, value):
         """Convert raw input value of the field."""
         if type(value) is not self.related_model_cls.Collection:
             value = self.related_model_cls.Collection(value)

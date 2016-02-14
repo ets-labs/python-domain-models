@@ -63,7 +63,8 @@ class DomainModelMetaClass(type):
     @staticmethod
     def bind_fields_to_model_cls(cls, model_fields):
         """Bind fields to model class."""
-        return dict(field.bind_model_cls(cls) for field in model_fields)
+        return dict(
+            (field.name, field.bind_model_cls(cls)) for field in model_fields)
 
     @staticmethod
     def bind_collection_to_model_cls(cls):
@@ -91,9 +92,9 @@ class DomainModel(object):
 
     .. py:attribute:: __fields__
 
-        Tuple of all model fields.
+        Dictionary of all model fields.
 
-        :type: tuple[fields.Field]
+        :type: dict[str, fields.Field]
 
     .. py:attribute:: __unique_key__
 
@@ -194,24 +195,17 @@ class DomainModel(object):
         one of the existent fields, the result is the value of that field.
         For example, `model.get('foobar')` is equivalent to `model.foobar`.
         If the filed does not have a value, `default` is returned if provided.
-        It will raise `AttributeError` if `default` can not be converted to
-        right type value.
+        It will raise `TypeError` or `ValueError` if `default` can not be
+        converted to right type value.
         If the field does not exist, `AttributeError` is raised as well.
 
         :param string field_name:
         :param mixed default:
         """
-        if not hasattr(self, field_name):
+        try:
+            field = self.__class__.__fields__[field_name]
+        except KeyError:
             raise AttributeError(
-                "Model doesn't have a field '{name}'".format(name=field_name))
-
-        if default is not None:
-            try:
-                field = self.__class__.__fields__[field_name]
-                default = field.converter(default)
-            except (TypeError, ValueError):
-                raise AttributeError(
-                    "default can not be converted to right type value")
-
-        value = getattr(self, field_name)
-        return value if value is not None else default
+                "Field {0} does not exist.".format(field_name))
+        else:
+            return field.get_value(self, default)

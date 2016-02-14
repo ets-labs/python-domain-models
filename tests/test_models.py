@@ -198,9 +198,12 @@ class BaseModelsTests(unittest.TestCase):
             self.assertEqual(model.get('field', default=value), int(value))
 
         for value in ['', u'baz']:
-            with self.assertRaises(AttributeError):
+            with self.assertRaises(ValueError):
                 model.get('field', value)
-                self.fail("Failed with {value}".format(value=str(value)))
+                self.fail("Failed with {0}".format(value))
+
+        with self.assertRaises(TypeError):
+            model.get('field', object())
 
     def test_get_method_on_string(self):
         """Test method get on String of Model."""
@@ -257,10 +260,13 @@ class BaseModelsTests(unittest.TestCase):
         for value in valid_defaults:
             self.assertEqual(model.get('field', default=value), float(value))
 
-        for value in ['', 'baz', u'baz', datetime]:
-            with self.assertRaises(AttributeError):
+        for value in ['', 'baz', u'baz']:
+            with self.assertRaises(ValueError):
                 model.get('field', value)
-                self.fail("Failed with {value}".format(value=str(value)))
+                self.fail("Failed with {0}".format(value))
+
+        with self.assertRaises(TypeError):
+            model.get('field', object())
 
     def test_get_method_on_date(self):
         """Test method get on Date of Model."""
@@ -280,9 +286,9 @@ class BaseModelsTests(unittest.TestCase):
         self.assertEqual(model.get('field', once), once)
 
         for value in ['', 'baz', u'baz', 0, 3, 0.7, '.5', False, True]:
-            with self.assertRaises(AttributeError):
+            with self.assertRaises(TypeError):
                 model.get('field', value)
-                self.fail("Failed with {value}".format(value=str(value)))
+                self.fail("Failed with {0}".format(value))
 
     def test_get_method_on_datetime(self):
         """Test method get on Date of Model."""
@@ -302,9 +308,9 @@ class BaseModelsTests(unittest.TestCase):
         self.assertEqual(model.get('field', once), once)
 
         for value in ['', 'baz', u'baz', 0, 3, 0.7, '.5', False, True]:
-            with self.assertRaises(AttributeError):
+            with self.assertRaises(TypeError):
                 model.get('field', value)
-                self.fail("Failed with {value}".format(value=str(value)))
+                self.fail("Failed with {0}".format(value))
 
     def test_get_method_on_binary(self):
         """Test method get on Binary of Model."""
