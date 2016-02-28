@@ -1,6 +1,10 @@
 """Models tests."""
 
+import datetime
+
 import unittest2 as unittest
+
+import six
 
 from domain_models import models
 from domain_models import fields
@@ -163,6 +167,162 @@ class BaseModelsTests(unittest.TestCase):
                 """Test model."""
 
                 field = Model1.field
+
+    def test_get_method_on_undefined(self):
+        """Test method get of Model."""
+
+        class Model(models.DomainModel):
+            """Test model."""
+            field = fields.Int()
+
+        model = Model()
+
+        with self.assertRaises(AttributeError):
+            model.get('undefined')
+
+    def test_get_method_on_int(self):
+        """Test method get on Int of Model."""
+        valid_defaults = [0, 3, 5.5, False, True]
+
+        class Model(models.DomainModel):
+            """Test model."""
+            field = fields.Int()
+
+        model = Model(field=2)
+        for value in valid_defaults:
+            self.assertEqual(model.get('field', default=value), 2)
+
+        model = Model()
+        self.assertEqual(model.get('field'), None)
+        for value in valid_defaults:
+            self.assertEqual(model.get('field', default=value), int(value))
+
+        for value in ['', u'baz']:
+            with self.assertRaises(ValueError):
+                model.get('field', value)
+                self.fail("Failed with {0}".format(value))
+
+        with self.assertRaises(TypeError):
+            model.get('field', object())
+
+    def test_get_method_on_string(self):
+        """Test method get on String of Model."""
+        valid_defaults = ['', 'baz', u'baz', False, True, 1, 2.3]
+
+        class Model(models.DomainModel):
+            """Test model."""
+            field = fields.String()
+
+        model = Model(field='foobar')
+        for value in valid_defaults:
+            self.assertEqual(model.get('field', default=value), 'foobar')
+
+        model = Model()
+        self.assertEqual(model.get('field'), None)
+        for value in valid_defaults:
+            self.assertEqual(model.get('field', default=value), str(value))
+
+    def test_get_method_on_bool(self):
+        """Test method get on Bool of Model."""
+
+        class Model(models.DomainModel):
+            """Test model."""
+            field = fields.Bool()
+
+        model = Model(field=True)
+        self.assertEqual(model.get('field'), True)
+        self.assertEqual(model.get('field', default=False), True)
+
+        model = Model(field=False)
+        self.assertEqual(model.get('field'), False)
+        self.assertEqual(model.get('field', default=True), False)
+
+        model = Model()
+        self.assertEqual(model.get('field'), None)
+        self.assertEqual(model.get('field', default=False), False)
+        self.assertEqual(model.get('field', default=True), True)
+
+    def test_get_method_on_float(self):
+        """Test method get on Float of Model."""
+        valid_defaults = [7.5, 7, '7.5', '7', 0, '0.0', .9, '.9', False, True]
+
+        class Model(models.DomainModel):
+            """Test model."""
+            field = fields.Float()
+
+        model = Model(field=5.5)
+        self.assertEqual(model.get('field'), 5.5)
+        for value in valid_defaults:
+            self.assertEqual(model.get('field', default=value), 5.5)
+
+        model = Model()
+        self.assertEqual(model.get('field'), None)
+        for value in valid_defaults:
+            self.assertEqual(model.get('field', default=value), float(value))
+
+        for value in ['', 'baz', u'baz']:
+            with self.assertRaises(ValueError):
+                model.get('field', value)
+                self.fail("Failed with {0}".format(value))
+
+        with self.assertRaises(TypeError):
+            model.get('field', object())
+
+    def test_get_method_on_date(self):
+        """Test method get on Date of Model."""
+        once = datetime.date(year=1986, month=4, day=26)
+        today = datetime.date.today()
+
+        class Model(models.DomainModel):
+            """Test model."""
+            field = fields.Date()
+
+        model = Model(field=today)
+        self.assertEqual(model.get('field'), today)
+        self.assertEqual(model.get('field', once), today)
+
+        model = Model()
+        self.assertEqual(model.get('field'), None)
+        self.assertEqual(model.get('field', once), once)
+
+        for value in ['', 'baz', u'baz', 0, 3, 0.7, '.5', False, True]:
+            with self.assertRaises(TypeError):
+                model.get('field', value)
+                self.fail("Failed with {0}".format(value))
+
+    def test_get_method_on_datetime(self):
+        """Test method get on Date of Model."""
+        once = datetime.datetime(year=1986, month=4, day=26)
+        now = datetime.datetime.now()
+
+        class Model(models.DomainModel):
+            """Test model."""
+            field = fields.DateTime()
+
+        model = Model(field=now)
+        self.assertEqual(model.get('field'), now)
+        self.assertEqual(model.get('field', once), now)
+
+        model = Model()
+        self.assertEqual(model.get('field'), None)
+        self.assertEqual(model.get('field', once), once)
+
+        for value in ['', 'baz', u'baz', 0, 3, 0.7, '.5', False, True]:
+            with self.assertRaises(TypeError):
+                model.get('field', value)
+                self.fail("Failed with {0}".format(value))
+
+    def test_get_method_on_binary(self):
+        """Test method get on Binary of Model."""
+        self.skipTest("Test is not implemented yet")
+
+    def test_get_method_on_model(self):
+        """Test method get on Model of Model."""
+        self.skipTest("Test is not implemented yet")
+
+    def test_get_method_on_collection(self):
+        """Test method get on Collection of Model."""
+        self.skipTest("Test is not implemented yet")
 
 
 class ModelReprTests(unittest.TestCase):

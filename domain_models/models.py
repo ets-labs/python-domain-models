@@ -63,8 +63,8 @@ class DomainModelMetaClass(type):
     @staticmethod
     def bind_fields_to_model_cls(cls, model_fields):
         """Bind fields to model class."""
-        return tuple(field.bind_model_cls(cls)
-                     for field in model_fields)
+        return dict(
+            (field.name, field.bind_model_cls(cls)) for field in model_fields)
 
     @staticmethod
     def bind_collection_to_model_cls(cls):
@@ -92,9 +92,9 @@ class DomainModel(object):
 
     .. py:attribute:: __fields__
 
-        Tuple of all model fields.
+        Dictionary of all model fields.
 
-        :type: tuple[fields.Field]
+        :type: dict[str, fields.Field]
 
     .. py:attribute:: __unique_key__
 
@@ -111,15 +111,15 @@ class DomainModel(object):
 
     Collection = collections.Collection
 
-    __fields__ = tuple()
+    __fields__ = dict()
     __view_key__ = tuple()
     __unique_key__ = tuple()
     __slots_optimization__ = True
 
     def __init__(self, **kwargs):
         """Initializer."""
-        for field in self.__class__.__fields__:
-            field.init_model(self, kwargs.get(field.name))
+        for name, field in six.iteritems(self.__class__.__fields__):
+            field.init_model(self, kwargs.get(name))
         super(DomainModel, self).__init__()
 
     def __eq__(self, other):
@@ -164,14 +164,16 @@ class DomainModel(object):
         """Return Pythonic representation of domain model."""
         return '{module}.{cls}({fields_values})'.format(
             module=self.__class__.__module__, cls=self.__class__.__name__,
-            fields_values=', '.join('='.join((field.name,
-                                              repr(field.get_value(self))))
-                                    for field in self.__class__.__fields__))
+            fields_values=', '.join(
+                '='.join((name, repr(field.get_value(self))))
+                for name, field in
+                six.iteritems(self.__class__.__fields__)))
 
     def __str__(self):
         """Return string representation of domain model."""
         if not self.__class__.__view_key__:
             return self.__repr__()
+
         return '{module}.{cls}({fields_values})'.format(
             module=self.__class__.__module__, cls=self.__class__.__name__,
             fields_values=', '.join('='.join((field.name,
@@ -181,5 +183,29 @@ class DomainModel(object):
     @property
     def __data__(self):
         """Read only dictionary of model fields/values."""
-        return dict((field.name, field.get_value(self))
-                    for field in self.__class__.__fields__)
+        return dict((name, field.get_value(self))
+                    for name, field in
+                    six.iteritems(self.__class__.__fields__))
+
+    def get(self, field_name, default=None):
+        """Return the value of the field.
+
+        Analogue for `dict.get()` python method.
+        `field_name` must be a string. If the string is the name of
+        one of the existent fields, the result is the value of that field.
+        For example, `model.get('foobar')` is equivalent to `model.foobar`.
+        If the filed does not have a value, `default` is returned if provided.
+        It will raise `TypeError` or `ValueError` if `default` can not be
+        converted to right type value.
+        If the field does not exist, `AttributeError` is raised as well.
+
+        :param string field_name:
+        :param mixed default:
+        """
+        try:
+            field = self.__class__.__fields__[field_name]
+        except KeyError:
+            raise AttributeError(
+                "Field {0} does not exist.".format(field_name))
+        else:
+            return field.get_value(self, default)

@@ -41,17 +41,26 @@ class Field(property):
 
     def init_model(self, model, value):
         """Init model with field."""
-        if value is None:
+        if value is None and self.default is not None:
             value = self.default() if callable(self.default) else self.default
+            value = self._converter(value)
 
         if value is None and self.required:
             raise AttributeError("This field is required.")
 
         setattr(model, self.storage_name, value)
 
-    def get_value(self, model):
-        """Return field's value."""
-        return getattr(model, self.storage_name)
+    def get_value(self, model, default=None):
+        """Return field's value.
+
+        :param DomainModel model:
+        :param mixed default:
+        """
+        if default is not None:
+            default = self._converter(default)
+
+        value = getattr(model, self.storage_name)
+        return value if value is not None else default
 
     def set_value(self, model, value):
         """Set field's value."""
@@ -60,6 +69,7 @@ class Field(property):
 
         if value is not None:
             value = self._converter(value)
+
         setattr(model, self.storage_name, value)
 
     def _converter(self, value):
