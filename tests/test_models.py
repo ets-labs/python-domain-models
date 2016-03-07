@@ -59,6 +59,7 @@ class BaseModelsTests(unittest.TestCase):
 
     def test_data_attr(self):
         """Test model's __data__ attribute."""
+
         class User(models.DomainModel):
             """Test user domain model."""
 
@@ -324,12 +325,47 @@ class BaseModelsTests(unittest.TestCase):
         """Test method get on Collection of Model."""
         self.skipTest("Test is not implemented yet")
 
+    def test_get_data_method(self):
+        class Photo(models.DomainModel):
+            id = fields.Int()
+            url = fields.String()
+
+        class Profile(models.DomainModel):
+            id = fields.Int()
+            name = fields.String()
+            main_photo = fields.Model(Photo)
+            photos = fields.Collection(Photo)
+            birth_date = fields.Date()
+            sequence = fields.Collection(fields.Int)
+
+        photo1 = Photo(id=1, url='http://boonya.info/wat.jpg?1')
+        photo2 = Photo(id=2, url='http://boonya.info/wat.jpg?2')
+        profile = Profile(id=1, name='John', main_photo=photo1,
+                          photos=[photo1, photo2],
+                          sequence=[1, 1, 2, 3, 5, 8, 13],
+                          birth_date=datetime.date(year=1986, month=4,
+                                                   day=26))
+
+        self.assertDictEqual(profile.get_data(), {
+            'id': 1,
+            'name': 'John',
+            'main_photo': {'id': 1,
+                           'url': 'http://boonya.info/wat.jpg?1'},
+            'photos': [
+                {'id': 1, 'url': 'http://boonya.info/wat.jpg?1'},
+                {'id': 2, 'url': 'http://boonya.info/wat.jpg?2'}
+            ],
+            'sequence': [1, 1, 2, 3, 5, 8, 13],
+            'birth_date': datetime.date(year=1986, month=4, day=26)
+        })
+
 
 class ModelReprTests(unittest.TestCase):
     """Tests for model Pythonic representation."""
 
     def test_repr(self):
         """Test model __repr__()."""
+
         class User(models.DomainModel):
             """Test user domain model."""
 
