@@ -57,48 +57,6 @@ class BaseModelsTests(unittest.TestCase):
         self.assertEqual(user2.gender, 'female')
         self.assertEqual(user2.birth_date, '05/04/1985')
 
-    def test_data_attr(self):
-        """Test model's __data__ attribute."""
-
-        class User(models.DomainModel):
-            """Test user domain model."""
-
-            id = fields.Int()
-            email = fields.String()
-            first_name = fields.String()
-            last_name = fields.String()
-            gender = fields.String()
-            birth_date = fields.String()
-
-        user1 = User()
-        user1.id = 1
-        user1.email = 'example1@example.com'
-        user1.first_name = 'John'
-        user1.last_name = 'Smith'
-        user1.gender = 'male'
-        user1.birth_date = '05/04/1988'
-
-        user2 = User()
-        user2.id = 2
-        user2.email = 'example2@example.com'
-        user2.first_name = 'Jane'
-        user2.last_name = 'Smith'
-        user2.gender = 'female'
-        user2.birth_date = '05/04/1985'
-
-        self.assertEquals(user1.__data__, dict(id=1,
-                                               email='example1@example.com',
-                                               first_name='John',
-                                               last_name='Smith',
-                                               gender='male',
-                                               birth_date='05/04/1988'))
-        self.assertEquals(user2.__data__, dict(id=2,
-                                               email='example2@example.com',
-                                               first_name='Jane',
-                                               last_name='Smith',
-                                               gender='female',
-                                               birth_date='05/04/1985'))
-
     def test_not_valid_unique_key_field(self):
         """Test that error is raised when unique key is not correct."""
         with self.assertRaises(errors.Error):

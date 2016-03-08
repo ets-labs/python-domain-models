@@ -180,13 +180,6 @@ class DomainModel(object):
                                               str(field.get_value(self))))
                                     for field in self.__class__.__view_key__))
 
-    @property
-    def __data__(self):
-        """Read only dictionary of model fields/values."""
-        return dict((name, field.get_value(self))
-                    for name, field in
-                    six.iteritems(self.__class__.__fields__))
-
     def get(self, field_name, default=None):
         """Return the value of the field.
 
