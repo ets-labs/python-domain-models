@@ -209,3 +209,12 @@ class DomainModel(object):
                 "Field {0} does not exist.".format(field_name))
         else:
             return field.get_value(self, default)
+
+    def get_data(self):
+        """Read only dictionary of model fields/values.
+
+        :rtype dict:
+        """
+        return dict((name, field.get_builtin_type(self))
+                    for name, field in
+                    six.iteritems(self.__class__.__fields__))

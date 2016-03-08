@@ -55,6 +55,7 @@ class Field(property):
 
         :param DomainModel model:
         :param mixed default:
+        :rtype object:
         """
         if default is not None:
             default = self._converter(default)
@@ -63,7 +64,11 @@ class Field(property):
         return value if value is not None else default
 
     def set_value(self, model, value):
-        """Set field's value."""
+        """Set field's value.
+
+        :param DomainModel model:
+        :param mixed value:
+        """
         if value is None and self.required:
             raise AttributeError("This field is required.")
 
@@ -71,6 +76,14 @@ class Field(property):
             value = self._converter(value)
 
         setattr(model, self.storage_name, value)
+
+    def get_builtin_type(self, model):
+        """Return built-in type representation of Field.
+
+        :param DomainModel model:
+        :rtype object:
+        """
+        return self.get_value(model)
 
     def _converter(self, value):
         """Convert raw input value of the field."""
@@ -154,6 +167,14 @@ class Model(Field):
                                                   self.related_model_cls))
         return value
 
+    def get_builtin_type(self, model):
+        """Return built-in type representation of Model.
+
+        :param DomainModel model:
+        :rtype dict:
+        """
+        return self.get_value(model).get_data()
+
 
 class Collection(Field):
     """Models collection relation field."""
@@ -168,3 +189,12 @@ class Collection(Field):
         if type(value) is not self.related_model_cls.Collection:
             value = self.related_model_cls.Collection(value)
         return value
+
+    def get_builtin_type(self, model):
+        """Return built-in type representation of Collection.
+
+        :param DomainModel model:
+        :rtype list:
+        """
+        return [item.get_data() if isinstance(item, self.related_model_cls)
+                else item for item in self.get_value(model)]
