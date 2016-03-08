@@ -323,7 +323,6 @@ class ModelReprTests(unittest.TestCase):
 
     def test_repr(self):
         """Test model __repr__()."""
-
         class User(models.DomainModel):
             """Test user domain model."""
 
