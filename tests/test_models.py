@@ -12,11 +12,25 @@ from domain_models import collections
 from domain_models import errors
 
 
+class Photo(models.DomainModel):
+    id = fields.Int()
+    storage_path = fields.String()
+
+
+class Profile(models.DomainModel):
+    id = fields.Int()
+    name = fields.String()
+    main_photo = fields.Model(Photo)
+    photos = fields.Collection(Photo)
+    birth_date = fields.Date()
+
+
 class BaseModelsTests(unittest.TestCase):
     """Basic model tests."""
 
     def test_set_and_get_attrs(self):
         """Test setting and getting of domain model attributes."""
+
         class User(models.DomainModel):
             """Test user domain model."""
 
@@ -116,6 +130,7 @@ class BaseModelsTests(unittest.TestCase):
 
     def test_field_could_not_be_rebound_in_different_model(self):
         """Test that field could not be rebound."""
+
         class Model1(models.DomainModel):
             """Test model."""
 
@@ -126,6 +141,21 @@ class BaseModelsTests(unittest.TestCase):
                 """Test model."""
 
                 field = Model1.field
+
+
+class ModelSetterGetterTests(unittest.TestCase):
+    """Tests for getter and setter methods of model."""
+    data = {
+        'id': 1,
+        'name': 'John',
+        'main_photo': {'id': 1,
+                       'storage_path': 'some/dir/where/photos/live/1.jpg'},
+        'photos': [
+            {'id': 1, 'storage_path': 'some/dir/where/photos/live/1.jpg'},
+            {'id': 2, 'storage_path': 'some/dir/where/photos/live/2.jpg'}
+        ],
+        'birth_date': datetime.date(year=1986, month=4, day=26)
+    }
 
     def test_get_method_on_undefined(self):
         """Test method get of Model."""
@@ -284,9 +314,99 @@ class BaseModelsTests(unittest.TestCase):
         self.skipTest("Test is not implemented yet")
 
     def test_get_data_method(self):
+        """Test get_data method."""
+        photo1 = Photo(id=1, storage_path='some/dir/where/photos/live/1.jpg')
+        photo2 = Photo(id=2, storage_path='some/dir/where/photos/live/2.jpg')
+        profile = Profile(id=1, name='John', main_photo=photo1,
+                          photos=[photo1, photo2],
+                          birth_date=datetime.date(year=1986, month=4,
+                                                   day=26))
+
+        self.assertDictEqual(profile.get_data(), self.data)
+
+    def test_set_data_method(self):
+        """Test set_data method."""
+        profile = Profile()
+        profile.set_data(self.data)
+
+        self.assertEqual(profile.id, 1)
+        self.assertEqual(profile.name, 'John')
+
+        self.assertIsInstance(profile.main_photo, Photo)
+        self.assertEqual(profile.main_photo.id, 1)
+        self.assertEqual(profile.main_photo.storage_path,
+                         'some/dir/where/photos/live/1.jpg')
+
+        self.assertIsInstance(profile.photos, Photo.Collection)
+        self.assertEqual(profile.photos[0].id, 1)
+        self.assertEqual(profile.photos[0].storage_path,
+                         'some/dir/where/photos/live/1.jpg')
+        self.assertEqual(profile.photos[1].id, 2)
+        self.assertEqual(profile.photos[1].storage_path,
+                         'some/dir/where/photos/live/2.jpg')
+
+        self.assertEqual(profile.birth_date,
+                         datetime.date(year=1986, month=4, day=26))
+
+    def test_set_data_via_constructor(self):
+        """Test set data via model."""
+        profile = Profile(**self.data)
+
+        self.assertEqual(profile.id, 1)
+        self.assertEqual(profile.name, 'John')
+
+        self.assertIsInstance(profile.main_photo, Photo)
+        self.assertEqual(profile.main_photo.id, 1)
+        self.assertEqual(profile.main_photo.storage_path,
+                         'some/dir/where/photos/live/1.jpg')
+
+        self.assertIsInstance(profile.photos, Photo.Collection)
+        self.assertEqual(profile.photos[0].id, 1)
+        self.assertEqual(profile.photos[0].storage_path,
+                         'some/dir/where/photos/live/1.jpg')
+        self.assertEqual(profile.photos[1].id, 2)
+        self.assertEqual(profile.photos[1].storage_path,
+                         'some/dir/where/photos/live/2.jpg')
+
+        self.assertEqual(profile.birth_date,
+                         datetime.date(year=1986, month=4, day=26))
+
+    def test_set_data_method_defaults(self):
         class Photo(models.DomainModel):
             id = fields.Int()
-            url = fields.String()
+            storage_path = fields.String(
+                default='some/dir/where/photos/live/default.jpg')
+
+        default_photo = Photo()
+
+        class Profile(models.DomainModel):
+            id = fields.Int()
+            name = fields.String()
+            main_photo = fields.Model(Photo, default=default_photo)
+            photos = fields.Collection(Photo)
+            birth_date = fields.Date()
+            something = fields.String(default='def-val')
+
+        profile = Profile()
+        profile.set_data({'id': 1, 'name': 'John'})
+
+        self.assertEqual(profile.id, 1)
+        self.assertEqual(profile.name, 'John')
+
+        self.assertIsInstance(profile.main_photo, Photo)
+        self.assertEqual(profile.main_photo.storage_path,
+                         'some/dir/where/photos/live/default.jpg')
+
+        self.assertIsNone(profile.main_photo.id)
+        self.assertIsNone(profile.photos)
+        self.assertIsNone(profile.birth_date)
+
+        self.assertEqual(profile.something, 'def-val')
+
+    def test_set_data_method_requirements(self):
+        class Photo(models.DomainModel):
+            id = fields.Int(required=True)
+            storage_path = fields.String(required=True)
 
         class Profile(models.DomainModel):
             id = fields.Int()
@@ -294,28 +414,11 @@ class BaseModelsTests(unittest.TestCase):
             main_photo = fields.Model(Photo)
             photos = fields.Collection(Photo)
             birth_date = fields.Date()
-            sequence = fields.Collection(fields.Int)
 
-        photo1 = Photo(id=1, url='http://boonya.info/wat.jpg?1')
-        photo2 = Photo(id=2, url='http://boonya.info/wat.jpg?2')
-        profile = Profile(id=1, name='John', main_photo=photo1,
-                          photos=[photo1, photo2],
-                          sequence=[1, 1, 2, 3, 5, 8, 13],
-                          birth_date=datetime.date(year=1986, month=4,
-                                                   day=26))
+        profile = Profile()
 
-        self.assertDictEqual(profile.get_data(), {
-            'id': 1,
-            'name': 'John',
-            'main_photo': {'id': 1,
-                           'url': 'http://boonya.info/wat.jpg?1'},
-            'photos': [
-                {'id': 1, 'url': 'http://boonya.info/wat.jpg?1'},
-                {'id': 2, 'url': 'http://boonya.info/wat.jpg?2'}
-            ],
-            'sequence': [1, 1, 2, 3, 5, 8, 13],
-            'birth_date': datetime.date(year=1986, month=4, day=26)
-        })
+        with self.assertRaises(AttributeError):
+            profile.set_data({'main_photo': {'id': 1}})
 
 
 class ModelReprTests(unittest.TestCase):
@@ -323,6 +426,7 @@ class ModelReprTests(unittest.TestCase):
 
     def test_repr(self):
         """Test model __repr__()."""
+
         class User(models.DomainModel):
             """Test user domain model."""
 
@@ -357,6 +461,7 @@ class ModelStrTests(unittest.TestCase):
 
     def test_str_with_single_view_key(self):
         """Test model __str__()."""
+
         class User(models.DomainModel):
             """Test user domain model."""
 
@@ -390,6 +495,7 @@ class ModelStrTests(unittest.TestCase):
 
     def test_str_with_multiple_view_keys(self):
         """Test model __str__()."""
+
         class User(models.DomainModel):
             """Test user domain model."""
 
@@ -423,6 +529,7 @@ class ModelStrTests(unittest.TestCase):
 
     def test_str_without_view_key(self):
         """Test model __str__()."""
+
         class User(models.DomainModel):
             """Test user domain model."""
 
@@ -449,6 +556,7 @@ class ModelSlotsOptimizationTests(unittest.TestCase):
 
     def test_model_slots(self):
         """Test model slots optimization."""
+
         class Model(models.DomainModel):
             """Test model."""
 
@@ -463,6 +571,7 @@ class ModelSlotsOptimizationTests(unittest.TestCase):
 
     def test_model_slots_disabling(self):
         """Test disabling of model slots optimization."""
+
         class Model(models.DomainModel):
             """Test model."""
 
@@ -482,6 +591,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_equal_single_key(self):
         """Test models equality comparator based on unique key."""
+
         class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
@@ -499,6 +609,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_single_key(self):
         """Test that models are not equal."""
+
         class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
@@ -516,6 +627,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_equal_multiple_keys(self):
         """Test models equality comparator based on unique key."""
+
         class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
@@ -536,6 +648,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_multiple_keys(self):
         """Test that models are not equal."""
+
         class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
@@ -556,6 +669,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_multiple_keys_first_equal(self):
         """Test that models are not equal."""
+
         class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
@@ -576,6 +690,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_different_classes(self):
         """Test that models are not equal."""
+
         class Model1(models.DomainModel):
             """Test domain model with single unique key."""
 
@@ -599,6 +714,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_scalar_value(self):
         """Test that model and scalar value are not equal."""
+
         class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
@@ -613,6 +729,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_not_equal_unknown_unique_key(self):
         """Test that models are not equal."""
+
         class Model(models.DomainModel):
             """Test domain model without unique key."""
 
@@ -629,6 +746,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_same_models_equal_unknown_unique_key(self):
         """Test that models are not equal."""
+
         class Model(models.DomainModel):
             """Test domain model without unique key."""
 
@@ -642,6 +760,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_single_key(self):
         """Test that non-equal models work properly with sets."""
+
         class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
@@ -664,6 +783,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_single_key(self):
         """Test that equal models work properly with sets."""
+
         class Model(models.DomainModel):
             """Test domain model with single unique key."""
 
@@ -686,6 +806,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_multiple_keys(self):
         """Test that non-equal models work properly with sets."""
+
         class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
@@ -712,6 +833,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_multiple_keys(self):
         """Test that equal models work properly with sets."""
+
         class Model(models.DomainModel):
             """Test domain model with multiple unique key."""
 
@@ -738,6 +860,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_non_equal_models_in_set_without_unique_key(self):
         """Test that non-equal models work properly with sets."""
+
         class Model(models.DomainModel):
             """Test domain model without unique key."""
 
@@ -759,6 +882,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_equal_models_in_set_without_unique_key(self):
         """Test that equal models work properly with sets."""
+
         class Model(models.DomainModel):
             """Test domain model without unique key."""
 
@@ -778,6 +902,7 @@ class ModelsEqualityComparationsTests(unittest.TestCase):
 
     def test_models_collection_extending(self):
         """Test model's collection extending."""
+
         class Credit(models.DomainModel):
             """Test credit domain model."""
 
