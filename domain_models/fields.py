@@ -40,21 +40,21 @@ class Field(property):
         return self
 
     def init_model(self, model, value):
-        """Init model with field."""
+        """Init model with field.
+
+        :param DomainModel model:
+        :param object value:
+        """
         if value is None and self.default is not None:
             value = self.default() if callable(self.default) else self.default
-            value = self._converter(value)
 
-        if value is None and self.required:
-            raise AttributeError("This field is required.")
-
-        setattr(model, self.storage_name, value)
+        self.set_value(model, value)
 
     def get_value(self, model, default=None):
         """Return field's value.
 
         :param DomainModel model:
-        :param mixed default:
+        :param object default:
         :rtype object:
         """
         if default is not None:
@@ -67,7 +67,7 @@ class Field(property):
         """Set field's value.
 
         :param DomainModel model:
-        :param mixed value:
+        :param object value:
         """
         if value is None and self.required:
             raise AttributeError("This field is required.")
@@ -86,7 +86,11 @@ class Field(property):
         return self.get_value(model)
 
     def _converter(self, value):
-        """Convert raw input value of the field."""
+        """Convert raw input value of the field.
+
+        :param object value:
+        :rtype object:
+        """
         return value
 
 
@@ -160,11 +164,18 @@ class Model(Field):
         self.related_model_cls = related_model_cls
 
     def _converter(self, value):
-        """Convert raw input value of the field."""
+        """Convert raw input value of the field.
+
+        :param object value:
+        :rtype object:
+        """
+        value = self.related_model_cls(**value) if isinstance(value,
+                                                              dict) else value
         if not isinstance(value, self.related_model_cls):
             raise TypeError('{0} is not valid model instance, instance of '
                             '{1} required'.format(value,
                                                   self.related_model_cls))
+
         return value
 
     def get_builtin_type(self, model):
@@ -185,9 +196,17 @@ class Collection(Field):
         self.related_model_cls = related_model_cls
 
     def _converter(self, value):
-        """Convert raw input value of the field."""
+        """Convert raw input value of the field.
+
+        :param object value:
+        :rtype object:
+        """
         if type(value) is not self.related_model_cls.Collection:
-            value = self.related_model_cls.Collection(value)
+            value = self.related_model_cls.Collection([
+                          self.related_model_cls(**item)
+                          if isinstance(item, dict)
+                          else item
+                          for item in value])
         return value
 
     def get_builtin_type(self, model):
