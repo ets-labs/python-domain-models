@@ -193,7 +193,7 @@ class DomainModel(object):
         If the field does not exist, `AttributeError` is raised as well.
 
         :param string field_name:
-        :param mixed default:
+        :param object default:
         """
         try:
             field = self.__class__.__fields__[field_name]
