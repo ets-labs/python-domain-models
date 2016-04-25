@@ -93,6 +93,19 @@ class Field(property):
         """
         return value
 
+    @staticmethod
+    def _get_model_instance(model_cls, data):
+        """Convert dict into object of class of passed model.
+
+        :param class model_cls:
+        :param object data:
+        :rtype DomainModel:
+        """
+        if not isinstance(data, (model_cls, dict)):
+            raise TypeError('{0} is not valid type, instance of '
+                            '{1} or dict required'.format(data, model_cls))
+        return model_cls(**data) if isinstance(data, dict) else data
+
 
 class Bool(Field):
     """Bool field."""
@@ -160,7 +173,6 @@ class Model(Field):
     def __init__(self, related_model_cls, default=None, required=False):
         """Initializer."""
         super(Model, self).__init__(default=default, required=required)
-
         self.related_model_cls = related_model_cls
 
     def _converter(self, value):
@@ -169,14 +181,7 @@ class Model(Field):
         :param object value:
         :rtype object:
         """
-        value = self.related_model_cls(**value) if isinstance(value,
-                                                              dict) else value
-        if not isinstance(value, self.related_model_cls):
-            raise TypeError('{0} is not valid model instance, instance of '
-                            '{1} required'.format(value,
-                                                  self.related_model_cls))
-
-        return value
+        return self._get_model_instance(self.related_model_cls, value)
 
     def get_builtin_type(self, model):
         """Return built-in type representation of Model.
@@ -203,10 +208,8 @@ class Collection(Field):
         """
         if type(value) is not self.related_model_cls.Collection:
             value = self.related_model_cls.Collection([
-                          self.related_model_cls(**item)
-                          if isinstance(item, dict)
-                          else item
-                          for item in value])
+                self._get_model_instance(self.related_model_cls, item)
+                for item in value])
         return value
 
     def get_builtin_type(self, model):
