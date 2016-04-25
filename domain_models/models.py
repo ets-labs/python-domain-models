@@ -193,7 +193,7 @@ class DomainModel(object):
         If the field does not exist, `AttributeError` is raised as well.
 
         :param string field_name:
-        :param mixed default:
+        :param object default:
         """
         try:
             field = self.__class__.__fields__[field_name]
@@ -211,3 +211,11 @@ class DomainModel(object):
         return dict((name, field.get_builtin_type(self))
                     for name, field in
                     six.iteritems(self.__class__.__fields__))
+
+    def set_data(self, data):
+        """Set dictionary data to model.
+
+        :param dict data:
+        """
+        for name, field in six.iteritems(self.__class__.__fields__):
+            field.init_model(self, data.get(name))

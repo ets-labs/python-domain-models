@@ -12,6 +12,19 @@ from domain_models import collections
 from domain_models import errors
 
 
+class Photo(models.DomainModel):
+    id = fields.Int()
+    storage_path = fields.String()
+
+
+class Profile(models.DomainModel):
+    id = fields.Int()
+    name = fields.String()
+    main_photo = fields.Model(Photo)
+    photos = fields.Collection(Photo)
+    birth_date = fields.Date()
+
+
 class BaseModelsTests(unittest.TestCase):
     """Basic model tests."""
 
@@ -127,9 +140,23 @@ class BaseModelsTests(unittest.TestCase):
 
                 field = Model1.field
 
+
+class ModelSetterGetterTests(unittest.TestCase):
+    """Tests for getter and setter methods of model."""
+    data = {
+        'id': 1,
+        'name': 'John',
+        'main_photo': {'id': 1,
+                       'storage_path': 'some/dir/where/photos/live/1.jpg'},
+        'photos': [
+            {'id': 1, 'storage_path': 'some/dir/where/photos/live/1.jpg'},
+            {'id': 2, 'storage_path': 'some/dir/where/photos/live/2.jpg'}
+        ],
+        'birth_date': datetime.date(year=1986, month=4, day=26)
+    }
+
     def test_get_method_on_undefined(self):
         """Test method get of Model."""
-
         class Model(models.DomainModel):
             """Test model."""
             field = fields.Int()
@@ -183,7 +210,6 @@ class BaseModelsTests(unittest.TestCase):
 
     def test_get_method_on_bool(self):
         """Test method get on Bool of Model."""
-
         class Model(models.DomainModel):
             """Test model."""
             field = fields.Bool()
@@ -284,9 +310,99 @@ class BaseModelsTests(unittest.TestCase):
         self.skipTest("Test is not implemented yet")
 
     def test_get_data_method(self):
+        """Test get_data method."""
+        photo1 = Photo(id=1, storage_path='some/dir/where/photos/live/1.jpg')
+        photo2 = Photo(id=2, storage_path='some/dir/where/photos/live/2.jpg')
+        profile = Profile(id=1, name='John', main_photo=photo1,
+                          photos=[photo1, photo2],
+                          birth_date=datetime.date(year=1986, month=4,
+                                                   day=26))
+
+        self.assertDictEqual(profile.get_data(), self.data)
+
+    def test_set_data_method(self):
+        """Test set_data method."""
+        profile = Profile()
+        profile.set_data(self.data)
+
+        self.assertEqual(profile.id, 1)
+        self.assertEqual(profile.name, 'John')
+
+        self.assertIsInstance(profile.main_photo, Photo)
+        self.assertEqual(profile.main_photo.id, 1)
+        self.assertEqual(profile.main_photo.storage_path,
+                         'some/dir/where/photos/live/1.jpg')
+
+        self.assertIsInstance(profile.photos, Photo.Collection)
+        self.assertEqual(profile.photos[0].id, 1)
+        self.assertEqual(profile.photos[0].storage_path,
+                         'some/dir/where/photos/live/1.jpg')
+        self.assertEqual(profile.photos[1].id, 2)
+        self.assertEqual(profile.photos[1].storage_path,
+                         'some/dir/where/photos/live/2.jpg')
+
+        self.assertEqual(profile.birth_date,
+                         datetime.date(year=1986, month=4, day=26))
+
+    def test_set_data_via_constructor(self):
+        """Test set data via model."""
+        profile = Profile(**self.data)
+
+        self.assertEqual(profile.id, 1)
+        self.assertEqual(profile.name, 'John')
+
+        self.assertIsInstance(profile.main_photo, Photo)
+        self.assertEqual(profile.main_photo.id, 1)
+        self.assertEqual(profile.main_photo.storage_path,
+                         'some/dir/where/photos/live/1.jpg')
+
+        self.assertIsInstance(profile.photos, Photo.Collection)
+        self.assertEqual(profile.photos[0].id, 1)
+        self.assertEqual(profile.photos[0].storage_path,
+                         'some/dir/where/photos/live/1.jpg')
+        self.assertEqual(profile.photos[1].id, 2)
+        self.assertEqual(profile.photos[1].storage_path,
+                         'some/dir/where/photos/live/2.jpg')
+
+        self.assertEqual(profile.birth_date,
+                         datetime.date(year=1986, month=4, day=26))
+
+    def test_set_data_method_defaults(self):
         class Photo(models.DomainModel):
             id = fields.Int()
-            url = fields.String()
+            storage_path = fields.String(
+                default='some/dir/where/photos/live/default.jpg')
+
+        default_photo = Photo()
+
+        class Profile(models.DomainModel):
+            id = fields.Int()
+            name = fields.String()
+            main_photo = fields.Model(Photo, default=default_photo)
+            photos = fields.Collection(Photo)
+            birth_date = fields.Date()
+            something = fields.String(default='def-val')
+
+        profile = Profile()
+        profile.set_data({'id': 1, 'name': 'John'})
+
+        self.assertEqual(profile.id, 1)
+        self.assertEqual(profile.name, 'John')
+
+        self.assertIsInstance(profile.main_photo, Photo)
+        self.assertEqual(profile.main_photo.storage_path,
+                         'some/dir/where/photos/live/default.jpg')
+
+        self.assertIsNone(profile.main_photo.id)
+        self.assertIsNone(profile.photos)
+        self.assertIsNone(profile.birth_date)
+
+        self.assertEqual(profile.something, 'def-val')
+
+    def test_set_data_method_requirements(self):
+        class Photo(models.DomainModel):
+            id = fields.Int(required=True)
+            storage_path = fields.String(required=True)
 
         class Profile(models.DomainModel):
             id = fields.Int()
@@ -294,28 +410,11 @@ class BaseModelsTests(unittest.TestCase):
             main_photo = fields.Model(Photo)
             photos = fields.Collection(Photo)
             birth_date = fields.Date()
-            sequence = fields.Collection(fields.Int)
 
-        photo1 = Photo(id=1, url='http://boonya.info/wat.jpg?1')
-        photo2 = Photo(id=2, url='http://boonya.info/wat.jpg?2')
-        profile = Profile(id=1, name='John', main_photo=photo1,
-                          photos=[photo1, photo2],
-                          sequence=[1, 1, 2, 3, 5, 8, 13],
-                          birth_date=datetime.date(year=1986, month=4,
-                                                   day=26))
+        profile = Profile()
 
-        self.assertDictEqual(profile.get_data(), {
-            'id': 1,
-            'name': 'John',
-            'main_photo': {'id': 1,
-                           'url': 'http://boonya.info/wat.jpg?1'},
-            'photos': [
-                {'id': 1, 'url': 'http://boonya.info/wat.jpg?1'},
-                {'id': 2, 'url': 'http://boonya.info/wat.jpg?2'}
-            ],
-            'sequence': [1, 1, 2, 3, 5, 8, 13],
-            'birth_date': datetime.date(year=1986, month=4, day=26)
-        })
+        with self.assertRaises(AttributeError):
+            profile.set_data({'main_photo': {'id': 1}})
 
 
 class ModelReprTests(unittest.TestCase):
