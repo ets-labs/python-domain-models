@@ -28,11 +28,6 @@ class Profile(models.DomainModel):
     photos = fields.Collection(Photo)
 
 
-class OtherDomain(models.DomainModel):
-    """Other DomainModel for testing of validation."""
-    id = fields.Int()
-
-
 class PublicProfile(views.ContextView):
     """Profile data in public context."""
     __model__ = Profile
