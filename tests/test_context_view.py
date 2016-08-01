@@ -111,26 +111,6 @@ class PrivatePhoto(views.ContextView):
         }
 
 
-class ModelUndefinedContext(views.ContextView):
-    """Model undefined"""
-
-    def get_data(self):
-        pass
-
-
-class WrongModelContext(views.ContextView):
-    """Wrong model defined."""
-    __model_cls__ = type
-
-    def get_data(self):
-        pass
-
-
-class GetterUndefinedContext(views.ContextView):
-    """Getter undefined."""
-    __model_cls__ = Profile
-
-
 class TestContextView(unittest.TestCase):
     main_photo = Photo(id=1, title='main photo', path='path/to/the/main/photo',
                        public=True)
@@ -151,14 +131,19 @@ class TestContextView(unittest.TestCase):
             PublicProfile("invalid argument")
 
     def test_model_undefined(self):
-        with self.assertRaises(TypeError):
-            ModelUndefinedContext("it doesn't matter")
+        with self.assertRaises(AttributeError):
+            class ModelUndefinedContext(views.ContextView):
+                pass
 
     def test_wrong_model_defined(self):
         with self.assertRaises(TypeError):
-            WrongModelContext("it doesn't matter")
+            class WrongModelContext(views.ContextView):
+                __model_cls__ = type
 
     def test_getter_undefined(self):
+        class GetterUndefinedContext(views.ContextView):
+            __model_cls__ = Profile
+
         contextual_view = GetterUndefinedContext(self.profile)
         with self.assertRaises(NotImplementedError):
             contextual_view.get_data()
