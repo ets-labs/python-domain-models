@@ -30,7 +30,7 @@ class Profile(models.DomainModel):
 
 class PublicProfile(views.ContextView):
     """Profile data in public context."""
-    __model__ = Profile
+    __model_cls__ = Profile
 
     def _get_oid(self):
         """Calculate open id.
@@ -60,7 +60,7 @@ class PublicProfile(views.ContextView):
 
 class PrivateProfile(views.ContextView):
     """Profile data in private context."""
-    __model__ = Profile
+    __model_cls__ = Profile
 
     def _get_photos(self):
         photos = []
@@ -85,7 +85,7 @@ class PrivateProfile(views.ContextView):
 
 class PublicPhoto(views.ContextView):
     """Photo data in public context."""
-    __model__ = Photo
+    __model_cls__ = Photo
 
     def _get_oid(self):
         return self.__model__.id << 8
@@ -101,7 +101,7 @@ class PublicPhoto(views.ContextView):
 
 
 class PrivatePhoto(views.ContextView):
-    __model__ = Photo
+    __model_cls__ = Photo
 
     def get_data(self):
         return {
@@ -120,7 +120,7 @@ class ModelUndefinedContext(views.ContextView):
 
 class WrongModelContext(views.ContextView):
     """Wrong model defined."""
-    __model__ = type
+    __model_cls__ = type
 
     def get_data(self):
         pass
@@ -128,7 +128,7 @@ class WrongModelContext(views.ContextView):
 
 class GetterUndefinedContext(views.ContextView):
     """Getter undefined."""
-    __model__ = Profile
+    __model_cls__ = Profile
 
 
 class TestContextView(unittest.TestCase):
