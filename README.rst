@@ -7,9 +7,6 @@ Domain models framework for Python projects
 | *PyPi*                                | .. image:: https://img.shields.io/pypi/v/domain_models.svg?style=flat-square                      |
 |                                       |    :target: https://pypi.python.org/pypi/domain_models/                                           |
 |                                       |    :alt: Latest Version                                                                           |
-|                                       | .. image:: https://img.shields.io/pypi/dm/domain_models.svg?style=flat-square                     |
-|                                       |    :target: https://pypi.python.org/pypi/domain_models/                                           |
-|                                       |    :alt: Downloads                                                                                |
 |                                       | .. image:: https://img.shields.io/pypi/l/domain_models.svg?style=flat-square                      |
 |                                       |    :target: https://pypi.python.org/pypi/domain_models/                                           |
 |                                       |    :alt: License                                                                                  |
