@@ -6,15 +6,10 @@ import re
 from setuptools import setup
 from setuptools import Command
 
-SHORT_DESCRIPTION = 'Domain models framework for Python projects'
-
 
 # Getting description:
 with open('README.rst') as readme_file:
     description = readme_file.read()
-
-    # Removing duplicated short description.
-    description = description.replace(SHORT_DESCRIPTION, '')
 
 # Getting requirements:
 with open('requirements.txt') as version:
@@ -45,17 +40,20 @@ class PublishCommand(Command):
         os.system('git push --tags')
 
 
-setup(name='domain_models',
+setup(name='domain-models',
       version=version,
-      description=SHORT_DESCRIPTION,
-      long_description=SHORT_DESCRIPTION,
+      description='Domain models framework for Python projects',
+      long_description=description,
       author='ETS Labs',
       author_email='rmogilatov@gmail.com',
       maintainer='ETS Labs',
       maintainer_email='rmogilatov@gmail.com',
-      url='https://github.com/ets-labs/domain_models',
+      url='https://github.com/ets-labs/python-domain-models',
+      bugtrack_url='https://github.com/ets-labs/python-domain-models/issues',
+      download_url='https://pypi.python.org/pypi/domain_models',
       license='BSD New',
       packages=['domain_models'],
+      platforms=['any'],
       zip_safe=True,
       install_requires=requirements,
       cmdclass={
