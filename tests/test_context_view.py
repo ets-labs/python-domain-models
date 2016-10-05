@@ -1,5 +1,4 @@
 """ContextViews tests."""
-
 import datetime
 
 import unittest2 as unittest
@@ -10,7 +9,7 @@ from domain_models import views
 
 
 class Photo(models.DomainModel):
-    """Photo DomainModel to be attached to profile."""
+    """Photo model to be attached to profile."""
     id = fields.Int()
     title = fields.String()
     path = fields.String()
@@ -18,7 +17,7 @@ class Photo(models.DomainModel):
 
 
 class Profile(models.DomainModel):
-    """Profile DomainModel to be tested."""
+    """Profile model to be tested."""
     id = fields.Int()
     name = fields.String()
     birth_date = fields.Date()
@@ -28,87 +27,86 @@ class Profile(models.DomainModel):
     photos = fields.Collection(Photo)
 
 
-class PublicProfile(views.ContextView):
+class ProfilePublicContext(views.ContextView):
     """Profile data in public context."""
     __model_cls__ = Profile
+    __include__ = (Profile.name, Profile.business_address)
 
-    def _get_oid(self):
+    @property
+    def oid(self):
         """Calculate open id.
 
         :rtype: int
         """
         return self.__model__.id << 8
 
-    def _get_photos(self):
+    @property
+    def photos(self):
+        """Return list of public photos' data.
+
+        :rtype: list
+        """
         photos = []
         for photo in self.__model__.photos:
-            photo_data = PublicPhoto(photo).get_data()
+            if not photo.public:
+                continue
+            photo_data = PhotoPublicContext(photo).get_data()
             if photo_data:
                 photos.append(photo_data)
         return photos
 
-    def get_data(self):
-        main_photo = PublicPhoto(self.__model__.main_photo)
-        return {
-            'oid': self._get_oid(),
-            'name': self.__model__.name,
-            'business_address': self.__model__.business_address,
-            'main_photo': main_photo.get_data(),
-            'photos': self._get_photos()
-        }
+    @property
+    def main_photo(self):
+        """Return main photo data within public context.
+
+        :rtype: dict
+        """
+        return PhotoPublicContext(self.__model__.main_photo).get_data()
 
 
-class PrivateProfile(views.ContextView):
+class ProfilePrivateContext(views.ContextView):
     """Profile data in private context."""
     __model_cls__ = Profile
 
-    def _get_photos(self):
+    @property
+    def photos(self):
+        """Return list of private photos' data.
+
+        :rtype: list
+        """
         photos = []
         for photo in self.__model__.photos:
-            photo_data = PrivatePhoto(photo).get_data()
+            photo_data = PhotoPrivateContext(photo).get_data()
             if photo_data:
                 photos.append(photo_data)
         return photos
 
-    def get_data(self):
-        main_photo = PrivatePhoto(self.__model__.main_photo)
-        return {
-            'id': self.__model__.id,
-            'name': self.__model__.name,
-            'birth_date': self.__model__.birth_date,
-            'business_address': self.__model__.business_address,
-            'home_address': self.__model__.home_address,
-            'main_photo': main_photo.get_data(),
-            'photos': self._get_photos()
-        }
+    @property
+    def main_photo(self):
+        """Return public data of main photo.
+
+        :rtype: dict
+        """
+        return PhotoPrivateContext(self.__model__.main_photo).get_data()
 
 
-class PublicPhoto(views.ContextView):
+class PhotoPublicContext(views.ContextView):
     """Photo data in public context."""
     __model_cls__ = Photo
+    __include__ = (Photo.title, Photo.path)
 
-    def _get_oid(self):
+    @property
+    def oid(self):
+        """Calculate open id.
+
+        :rtype: int
+        """
         return self.__model__.id << 8
 
-    def get_data(self):
-        if not self.__model__.public:
-            return {}
-        return {
-            'oid': self._get_oid(),
-            'title': self.__model__.title,
-            'path': self.__model__.path
-        }
 
-
-class PrivatePhoto(views.ContextView):
+class PhotoPrivateContext(views.ContextView):
     __model_cls__ = Photo
-
-    def get_data(self):
-        return {
-            'id': self.__model__.id,
-            'title': self.__model__.title,
-            'path': self.__model__.path
-        }
+    __exclude__ = (Photo.public,)
 
 
 class TestContextView(unittest.TestCase):
@@ -128,7 +126,7 @@ class TestContextView(unittest.TestCase):
 
     def test_wrong_model_passed(self):
         with self.assertRaises(TypeError):
-            PublicProfile("invalid argument")
+            ProfilePublicContext("invalid argument")
 
     def test_model_undefined(self):
         with self.assertRaises(AttributeError):
@@ -140,19 +138,36 @@ class TestContextView(unittest.TestCase):
             class WrongModelContext(views.ContextView):
                 __model_cls__ = type
 
-    def test_getter_undefined(self):
-        class GetterUndefinedContext(views.ContextView):
-            __model_cls__ = Profile
-
-        contextual_view = GetterUndefinedContext(self.profile)
-        with self.assertRaises(NotImplementedError):
-            contextual_view.get_data()
+    def test_include_exclude(self):
+        with self.assertRaises(AttributeError):
+            class WrongContext(views.ContextView):
+                __model_cls__ = Profile
+                __include__ = (Profile.birth_date,)
+                __exclude__ = (Profile.business_address,)
 
     def test_context_view(self):
-        public_context = PublicProfile(self.profile)
-        private_context = PrivateProfile(self.profile)
+        public_profile = ProfilePublicContext(self.profile)
+        private_profile = ProfilePrivateContext(self.profile)
 
-        self.assertDictEqual(public_context.get_data(), {
+        self.assertEqual(public_profile.oid, 256)
+        self.assertEqual(public_profile.name, 'John')
+        self.assertEqual(public_profile.business_address, 'John works here')
+        self.assertDictEqual(public_profile.main_photo, {
+            'oid': 256,
+            'title': 'main photo',
+            'path': 'path/to/the/main/photo'
+        })
+        self.assertEqual(public_profile.photos, [{
+            'oid': 256,
+            'title': 'main photo',
+            'path': 'path/to/the/main/photo'
+        }, {
+            'oid': 768,
+            'title': 'photo 3',
+            'path': 'path/to/the/photo3'
+        }])
+
+        self.assertDictEqual(public_profile.get_data(), {
             'oid': 256,
             'name': 'John',
             'business_address': 'John works here',
@@ -172,7 +187,32 @@ class TestContextView(unittest.TestCase):
             }]
         })
 
-        self.assertDictEqual(private_context.get_data(), {
+        self.assertEqual(private_profile.id, 1)
+        self.assertEqual(private_profile.name, 'John')
+        self.assertEqual(private_profile.birth_date,
+                         datetime.date(1950, 4, 18))
+        self.assertEqual(private_profile.business_address, 'John works here')
+        self.assertEqual(private_profile.home_address, 'John lives here')
+        self.assertDictEqual(private_profile.main_photo, {
+            'id': 1,
+            'title': 'main photo',
+            'path': 'path/to/the/main/photo'
+        })
+        self.assertEqual(private_profile.photos, [{
+            'id': 1,
+            'title': 'main photo',
+            'path': 'path/to/the/main/photo'
+        }, {
+            'id': 2,
+            'title': 'photo 2',
+            'path': 'path/to/the/photo2'
+        }, {
+            'id': 3,
+            'title': 'photo 3',
+            'path': 'path/to/the/photo3'
+        }])
+
+        self.assertDictEqual(private_profile.get_data(), {
             'id': 1,
             'name': 'John',
             'birth_date': datetime.date(1950, 4, 18),
