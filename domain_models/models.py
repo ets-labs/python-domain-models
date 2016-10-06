@@ -192,8 +192,8 @@ class DomainModel(object):
         converted to right type value.
         If the field does not exist, `AttributeError` is raised as well.
 
-        :param field_name: string
-        :param default: object
+        :type field_name: string
+        :type default: object
         """
         try:
             field = self.__class__.__fields__[field_name]
@@ -215,7 +215,7 @@ class DomainModel(object):
     def set_data(self, data):
         """Set dictionary data to model.
 
-        :param data: dict
+        :type data: dict
         """
         for name, field in six.iteritems(self.__class__.__fields__):
             field.init_model(self, data.get(name))

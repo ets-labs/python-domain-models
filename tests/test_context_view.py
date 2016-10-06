@@ -145,6 +145,31 @@ class TestContextView(unittest.TestCase):
                 __include__ = (Profile.birth_date,)
                 __exclude__ = (Profile.business_address,)
 
+        with self.assertRaises(TypeError):
+            class WrongContext(views.ContextView):
+                __model_cls__ = Profile
+                __include__ = [Profile.name]
+
+        with self.assertRaises(TypeError):
+            class WrongContext(views.ContextView):
+                __model_cls__ = Profile
+                __exclude__ = [Profile.name]
+
+        with self.assertRaises(AttributeError):
+            class WrongContext(views.ContextView):
+                __model_cls__ = Profile
+                __exclude__ = (Profile.id, Profile.name)
+
+                @property
+                def name(self):
+                    return "Any name"
+
+        with self.assertRaises(AttributeError):
+            class WrongContext(views.ContextView):
+                __model_cls__ = Profile
+                __include__ = (Profile.wrong_field,)
+                __exclude__ = (Profile.one_more_wrong_field,)
+
     def test_context_view(self):
         public_profile = ProfilePublicContext(self.profile)
         private_profile = ProfilePrivateContext(self.profile)
