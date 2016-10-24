@@ -168,7 +168,11 @@ class TestContextView(unittest.TestCase):
             class WrongContext(views.ContextView):
                 __model_cls__ = Profile
                 __include__ = (Profile.wrong_field,)
-                __exclude__ = (Profile.one_more_wrong_field,)
+
+        with self.assertRaises(AttributeError):
+            class WrongContext(views.ContextView):
+                __model_cls__ = Profile
+                __exclude__ = (Profile.wrong_field,)
 
     def test_context_view(self):
         public_profile = ProfilePublicContext(self.profile)
@@ -262,3 +266,13 @@ class TestContextView(unittest.TestCase):
                 'path': 'path/to/the/photo3'
             }]
         })
+
+        class SomeContext(views.ContextView):
+            __model_cls__ = Profile
+
+            @property
+            def name(self):
+                return " + ".join((self.__model__.name, "postfix"))
+
+        profile_within_context = SomeContext(self.profile)
+        self.assertEqual(profile_within_context.name, 'John + postfix')
