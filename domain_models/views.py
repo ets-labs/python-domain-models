@@ -1,4 +1,5 @@
 """Contextual view module."""
+
 from . import models
 import six
 
@@ -21,11 +22,11 @@ class ContextViewMetaClass(type):
         """Check attributes."""
         if bases[0] is object:
             return None
-        mcs.chk_model_cls()
-        mcs.chk_incl_excl()
+        mcs.check_model_cls()
+        mcs.check_include_exclude()
 
     @classmethod
-    def chk_model_cls(mcs):
+    def check_model_cls(mcs):
         """Check __model_cls__ attribute."""
         model_cls = mcs.attributes.get('__model_cls__')
         if model_cls is None:
@@ -36,7 +37,7 @@ class ContextViewMetaClass(type):
                             "DomainModel.")
 
     @classmethod
-    def chk_incl_excl(mcs):
+    def check_include_exclude(mcs):
         """Check __include__ and __exclude__ attributes."""
         include = mcs.attributes.get('__include__', tuple())
         exclude = mcs.attributes.get('__exclude__', tuple())
@@ -109,8 +110,8 @@ class ContextViewMetaClass(type):
 
         :rtype: list
         """
-        return [key for key, value in six.iteritems(mcs.attributes) if
-                isinstance(value, property)]
+        return [key for key, value in six.iteritems(mcs.attributes)
+                if isinstance(value, property)]
 
 
 @six.add_metaclass(ContextViewMetaClass)
