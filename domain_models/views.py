@@ -164,20 +164,20 @@ class ContextView(object):
         self._model = model
 
         if self.__include__:
-            self._include()
+            self._include_fields()
         elif self.__exclude__:
-            self._exclude()
+            self._exclude_fields()
         else:
-            self._fields()
+            self._all_fields()
 
-    def _include(self):
+    def _include_fields(self):
         """Fill __fields__ out based on __include__."""
         for field in self.__include__:
             value = getattr(self._model, field.name)
             setattr(self, field.name, value)
             self.__fields__.append(field.name)
 
-    def _exclude(self):
+    def _exclude_fields(self):
         """Fill __fields__ out based on __exclude__."""
         exclude = [field.name for field in self.__exclude__]
         for (field, value) in six.iteritems(self._model.get_data()):
@@ -186,7 +186,7 @@ class ContextView(object):
             setattr(self, field, value)
             self.__fields__.append(field)
 
-    def _fields(self):
+    def _all_fields(self):
         """Fill __fields__ out based on full model data."""
         for (field, value) in six.iteritems(self._model.get_data()):
             if field in self.__fields__:
