@@ -19,11 +19,9 @@ class ContextViewMetaClass(type):
         """Check attributes."""
         if bases[0] is object:
             return None
-
         mcs.check_model_cls(attributes)
         mcs.check_include_exclude(attributes)
         mcs.check_properties(attributes)
-        mcs.match_unknown_attrs(attributes)
 
     @staticmethod
     def check_model_cls(attributes):
@@ -120,27 +118,6 @@ class ContextViewMetaClass(type):
             return []
         properties = mcs.get_properties(attributes)
         return list(set(properties).intersection(attr))
-
-    @classmethod
-    def match_unknown_attrs(mcs, attributes):
-        """Check about using nonexistent attributes.
-
-        :type attributes: dict
-        """
-        model_cls = attributes.get('__model_cls__')
-        include, exclude = mcs.get_prepared_include_exclude(attributes)
-        attrs = include if include else exclude
-        unknown_attr = list()
-
-        for attr in attrs:
-            if not hasattr(model_cls, attr):
-                unknown_attr.append(attr)
-
-        if not unknown_attr:
-            return None
-
-        raise AttributeError(
-            "Nonexistent attributes: {0}.".format(", ".join(unknown_attr)))
 
 
 @six.add_metaclass(ContextViewMetaClass)
