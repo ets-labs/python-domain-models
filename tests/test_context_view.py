@@ -159,6 +159,15 @@ class TestContextView(unittest.TestCase):
         with self.assertRaises(AttributeError):
             class WrongContext(views.ContextView):
                 __model_cls__ = Profile
+                __include__ = (Profile.id, Profile.name)
+
+                @property
+                def name(self):
+                    return "Any name"
+
+        with self.assertRaises(AttributeError):
+            class WrongContext(views.ContextView):
+                __model_cls__ = Profile
                 __exclude__ = (Profile.id, Profile.name)
 
                 @property

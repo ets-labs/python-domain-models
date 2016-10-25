@@ -89,35 +89,18 @@ class ContextViewMetaClass(type):
         :type attributes: dict
         """
         include, exclude = mcs.get_prepared_include_exclude(attributes)
-
-        if include:
-            intersections = mcs.get_intersections(attributes, include)
-            attr = '__include__'
-        elif exclude:
-            intersections = mcs.get_intersections(attributes, exclude)
-            attr = '__exclude__'
-        else:
-            return None
-
+        properties = mcs.get_properties(attributes)
+        intersections = list(
+            set(properties).intersection(include if include else exclude))
         if not intersections:
             return None
 
+        attr_name = '__include__' if include else '__exclude__'
+
         raise AttributeError(
             "It is not allowed to mention already defined properties: "
-            "{0} in {1} attributes.".format(", ".join(intersections), attr))
-
-    @classmethod
-    def get_intersections(mcs, attributes, attr):
-        """Return intersection with defined properties if exists.
-
-        :type attributes: dict
-        :type attr: list
-        :rtype: list
-        """
-        if not attr:
-            return []
-        properties = mcs.get_properties(attributes)
-        return list(set(properties).intersection(attr))
+            "{0} in {1} attributes.".format(", ".join(intersections),
+                                            attr_name))
 
 
 @six.add_metaclass(ContextViewMetaClass)
