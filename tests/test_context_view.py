@@ -39,7 +39,7 @@ class ProfilePublicContext(views.ContextView):
 
         :rtype: int
         """
-        return self.__model__.id << 8
+        return self._model.id << 8
 
     @property
     def photos(self):
@@ -48,7 +48,7 @@ class ProfilePublicContext(views.ContextView):
         :rtype: list
         """
         photos = []
-        for photo in self.__model__.photos:
+        for photo in self._model.photos:
             if not photo.public:
                 continue
             photo_data = PhotoPublicContext(photo).get_data()
@@ -62,7 +62,7 @@ class ProfilePublicContext(views.ContextView):
 
         :rtype: dict
         """
-        return PhotoPublicContext(self.__model__.main_photo).get_data()
+        return PhotoPublicContext(self._model.main_photo).get_data()
 
 
 class ProfilePrivateContext(views.ContextView):
@@ -76,7 +76,7 @@ class ProfilePrivateContext(views.ContextView):
         :rtype: list
         """
         photos = []
-        for photo in self.__model__.photos:
+        for photo in self._model.photos:
             photo_data = PhotoPrivateContext(photo).get_data()
             if photo_data:
                 photos.append(photo_data)
@@ -88,7 +88,7 @@ class ProfilePrivateContext(views.ContextView):
 
         :rtype: dict
         """
-        return PhotoPrivateContext(self.__model__.main_photo).get_data()
+        return PhotoPrivateContext(self._model.main_photo).get_data()
 
 
 class PhotoPublicContext(views.ContextView):
@@ -102,7 +102,7 @@ class PhotoPublicContext(views.ContextView):
 
         :rtype: int
         """
-        return self.__model__.id << 8
+        return self._model.id << 8
 
 
 class PhotoPrivateContext(views.ContextView):
@@ -273,7 +273,7 @@ class TestContextView(unittest.TestCase):
 
             @property
             def name(self):
-                return " + ".join((self.__model__.name, "postfix"))
+                return " + ".join((self._model.name, "postfix"))
 
         profile_within_context = SomeContext(self.profile)
         self.assertEqual(profile_within_context.name, 'John + postfix')
