@@ -29,7 +29,7 @@ matrix:
       env: TOXENV=py36
     - python: pypy
       env: TOXENV=pypy
-    - python: pypy-5.3.1
+    - python: pypy3.5-5.9.0
       env: TOXENV=pypy3
 notifications:
   slack:
